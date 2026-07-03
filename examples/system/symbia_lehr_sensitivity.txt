@@ -1,0 +1,57 @@
+# Full-MC system example: absolute system sensitivity, Siemens Symbia LEHR + NaI at 10 cm.
+#
+# Selects the validated scanner geometry with a single IncludeFile, then adds the world,
+# physics, source, scorer, detector extents and placements. Reproduces the validated result
+# (8.6e-5 vs published 9.1e-5 counts/decay, ratio 0.95; docs/validation.md).
+#
+# In post-processing, count the events whose deposited energy falls in the Tc-99m photopeak
+# window (126.5-154.6 keV) and divide by NumberOfHistoriesInRun to get counts/decay.
+#
+# Run from this example's folder so the relative include resolves:
+#   topas symbia_lehr_sensitivity.txt
+
+IncludeFile = ../../systems/symbia_lehr.txt      # Ma/Lead, Ma/NaI, Ge/Collim, Ge/Crystal (spec)
+
+i:Ts/NumberOfThreads = 0
+b:Ge/QuitIfOverlapDetected = "True"
+
+sv:Ph/Default/Modules     = 1 "g4em-penelope"
+b:Ph/Default/Fluorescence = "True"
+d:Ph/Default/CutForGamma    = 0.05 mm
+d:Ph/Default/CutForElectron = 0.05 mm
+
+d:Ge/World/HLX = 250. mm
+d:Ge/World/HLY = 250. mm
+d:Ge/World/HLZ = 200. mm
+s:Ge/World/Material = "Vacuum"
+
+# Detector extents + placement (the spec-fixed hole/septum/length/material come from the preset)
+i:Ge/Collim/NHolesX = 120
+i:Ge/Collim/NHolesY = 120
+d:Ge/Collim/TransZ  = 12.025 mm            # front collimator face at z = 0
+
+d:Ge/Crystal/HLX    = 90. mm
+d:Ge/Crystal/HLY    = 90. mm
+d:Ge/Crystal/TransZ = 29.05 mm
+
+# Isotropic point source at 10 cm in front of the collimator
+s:Ge/Src/Type   = "TsBox"
+s:Ge/Src/Parent = "World"
+s:Ge/Src/Material = "Vacuum"
+d:Ge/Src/HLX = 0.01 mm
+d:Ge/Src/HLY = 0.01 mm
+d:Ge/Src/HLZ = 0.01 mm
+d:Ge/Src/TransZ = -100. mm
+
+s:So/Beam/Type = "Isotropic"
+s:So/Beam/Component = "Src"
+s:So/Beam/BeamParticle = "gamma"
+d:So/Beam/BeamEnergy = 140.5 keV
+i:So/Beam/NumberOfHistoriesInRun = 200000000
+
+s:Sc/Spec/Quantity   = "EDepSpectrum"
+s:Sc/Spec/Component  = "Crystal"
+s:Sc/Spec/OutputType = "ASCII"
+s:Sc/Spec/OutputFile = "sensitivity_symbia_lehr_140p5keV_10cm"
+s:Sc/Spec/IfOutputFileAlreadyExists = "Overwrite"
+b:Ts/PauseBeforeQuit = "False"

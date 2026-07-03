@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OpenTOPAS-SPECT: SPECT imaging simulation for OpenTOPAS</title>
+<meta name="description" content="OpenTOPAS extensions for SPECT: collimators, detectors, patient phantoms, dynamic acquisitions, and variance reduction, from parameter files, no C++.">
+<link rel="icon" href="assets/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+<link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+<header class="site">
+  <div class="wrap navbar">
+    <a class="brand" href="index.html"><img class="brand-icon" src="assets/icon.svg" alt=""><span class="brand-name">Open<b>TOPAS</b><span class="accent">-SPECT</span></span></a>
+    <nav class="links">
+      <a href="index.html#features">Features</a>
+      <a href="install.html">Install</a>
+      <a href="documentation.html">Documentation</a>
+      <a href="citation.html">Citation</a>
+      <a class="ext" href="https://github.com/bertoletlab/topas-spect-release">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="wrap">
+    <h1>OpenTOPAS-SPECT</h1>
+    <p class="tag">SPECT imaging simulation for OpenTOPAS.</p>
+    <p class="sub">A collimator, an energy-resolved detector, patient-like activity phantoms, moving-detector
+      acquisitions, and the variance reduction that makes them tractable, built entirely from OpenTOPAS
+      parameter files, with no C++ and no changes to the OpenTOPAS core.</p>
+    <div class="cta">
+      <a class="btn btn-primary" href="https://github.com/bertoletlab/topas-spect-release">View on GitHub</a>
+      <a class="btn btn-ghost" href="documentation.html">Read the Docs</a>
+    </div>
+  </div>
+</section>
+
+<section class="block" id="features">
+  <div class="wrap">
+    <h2>What it adds to OpenTOPAS</h2>
+    <p class="lead">OpenTOPAS is a powerful, well-validated Monte Carlo platform, but it ships without the
+      geometry and scoring a clinical SPECT system needs. OpenTOPAS-SPECT adds those pieces as self-contained
+      OpenTOPAS classes.</p>
+    <div class="grid">
+      <div class="card">
+        <h3><span class="ic">&#9673;</span>Collimators</h3>
+        <p>Parallel-hole (round/hex/square, converging fan and cone-beam), pinhole and multi-pinhole,
+          and slit-slat, plus CAD import for novel geometries.</p>
+      </div>
+      <div class="card">
+        <h3><span class="ic">&#9635;</span>Detectors</h3>
+        <p>Energy-resolved NaI and CZT crystals, a general pixelated detector, and a StarGuide-style CZT
+          ring, with pulse-height response and photopeak windowing.</p>
+      </div>
+      <div class="card">
+        <h3><span class="ic">&#9678;</span>Patient phantoms</h3>
+        <p>Composable analytic phantoms with literature-grounded uptake for &#185;&#8311;&#8311;Lu,
+          &#178;&#178;&#8309;Ac, &#8313;&#8304;Y, and &#185;&#179;&#185;I therapies, or bring your own XCAT phantom.</p>
+      </div>
+      <div class="card">
+        <h3><span class="ic">&#8635;</span>Dynamic acquisitions</h3>
+        <p>Prescribe a study in clinical console terms, projections, time per projection, heads, matrix,
+          energy window, with native isotope decay on one clock.</p>
+      </div>
+      <div class="card">
+        <h3><span class="ic">&#8982;</span>CT-driven motion</h3>
+        <p>Derive collision-safe, contour-hugging detector motion from a patient CT, validated on a real
+          Y-90 patient contour.</p>
+      </div>
+      <div class="card">
+        <h3><span class="ic">&#9889;</span>Variance reduction</h3>
+        <p>Forced-detection projection replaces the 1-in-5000 collimator lottery with an analytic
+          projection, so a patient acquisition runs in minutes per view.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="block">
+  <div class="wrap">
+    <h2>Validated, not just runnable</h2>
+    <p class="lead">Every feature is checked against ground truth: absolute system sensitivity within 2% of
+      the measured Symbia value, distance-dependent resolution, crystal energy response, and an end-to-end
+      control experiment (a point source's sinogram traces the expected sinusoid to sub-pixel accuracy).
+      A software test suite guards the tools and every shipped example.</p>
+    <div class="cta">
+      <a class="btn btn-ghost" href="documentation.html">Documentation</a>
+      <a class="btn btn-ghost" href="install.html">Install &amp; build</a>
+    </div>
+  </div>
+</section>
+
+<footer class="site">
+  <div class="wrap row">
+    <span>&copy; 2026 Bertolet Lab &middot; MIT License</span>
+    <span><a href="https://github.com/bertoletlab/topas-spect-release">github.com/bertoletlab/topas-spect-release</a></span>
+  </div>
+</footer>
+</body>
+</html>

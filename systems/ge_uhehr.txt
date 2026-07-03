@@ -1,0 +1,38 @@
+# GE Anger family, UHEHR (Ultra-High-Energy High-Resolution) collimator + NaI crystal.
+# GE Infinia/InfiniaVC catalog. Geometry (hexagonal, hole diameter = flat-to-flat): 3.0 / 1.9 / 80 mm.
+# Source: GE Infinia Product Data (Dir 2411980-100 Rev3). Reliability B (single manufacturer source).
+# Evidence: research/knowledge/spect-collimator-geometry/.
+# NOTE: UHEHR is paired with the 1" (25.4 mm) NaI crystal option; this preset uses that crystal.
+#
+# IncludeFile fragment (see systems/README.md). Include exactly one preset per deck. The deck
+# adds World, physics, source, scorer, detector extents and the Z placements below.
+# Recommended placement (front collimator face at z = 0):
+#   d:Ge/Collim/TransZ  = 40.0 mm       # CollimatorLength / 2
+#   d:Ge/Crystal/TransZ = 92.95 mm      # 0.25 mm gap behind the collimator back face
+
+# --- Collimator septa: lead ---
+sv:Ma/Lead/Components = 1 "Lead"
+uv:Ma/Lead/Fractions  = 1 1.0
+d:Ma/Lead/Density     = 11.35 g/cm3
+
+# --- Crystal: sodium iodide ---
+sv:Ma/NaI/Components = 2 "Sodium" "Iodine"
+uv:Ma/NaI/Fractions  = 2 0.1534 0.8466
+d:Ma/NaI/Density     = 3.67 g/cm3
+
+# --- Collimator geometry (UHEHR, hexagonal holes on a hex lattice) ---
+s:Ge/Collim/Type             = "TsParallelHoleCollimator"
+s:Ge/Collim/Parent           = "World"
+s:Ge/Collim/Material         = "Lead"
+d:Ge/Collim/HoleDiameter     = 3.0 mm
+d:Ge/Collim/SeptalThickness  = 1.9 mm
+d:Ge/Collim/CollimatorLength = 80.0 mm
+s:Ge/Collim/HoleShape        = "Hex"
+s:Ge/Collim/Lattice          = "Hex"
+s:Ge/Collim/Hole/Material    = "Vacuum"
+
+# --- Crystal geometry (NaI, 25.4 mm / 1" thick) ---
+s:Ge/Crystal/Type     = "TsBox"
+s:Ge/Crystal/Parent   = "World"
+s:Ge/Crystal/Material = "NaI"
+d:Ge/Crystal/HLZ      = 12.7 mm         # 25.4 mm (1") thick

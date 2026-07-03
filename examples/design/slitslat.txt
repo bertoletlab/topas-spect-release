@@ -1,0 +1,62 @@
+# Design example: slit-slat collimator.
+# TsSlitSlatCollimator = an absorber slab with a stack of rectangular through-slots: a slit aperture
+# in the transaxial (x) direction crossed with parallel slats in the axial (y) direction. Slot fill
+# is set with Ge/<name>/Slot/Material.
+# Run from this example's folder: topas slitslat.txt
+
+i:Ts/NumberOfThreads = 1
+b:Ge/QuitIfOverlapDetected = "True"
+
+sv:Ma/Lead/Components = 1 "Lead"
+uv:Ma/Lead/Fractions  = 1 1.0
+d:Ma/Lead/Density     = 11.35 g/cm3
+sv:Ma/NaI/Components = 2 "Sodium" "Iodine"
+uv:Ma/NaI/Fractions  = 2 0.1534 0.8466
+d:Ma/NaI/Density     = 3.67 g/cm3
+
+sv:Ph/Default/Modules = 1 "g4em-penelope"
+b:Ph/Default/Fluorescence = "True"
+
+d:Ge/World/HLX = 300. mm
+d:Ge/World/HLY = 300. mm
+d:Ge/World/HLZ = 300. mm
+s:Ge/World/Material = "Vacuum"
+
+s:Ge/Collim/Type          = "TsSlitSlatCollimator"
+s:Ge/Collim/Parent        = "World"
+s:Ge/Collim/Material      = "Lead"
+d:Ge/Collim/CollimatorLength = 30. mm
+d:Ge/Collim/SlatThickness    = 0.3 mm
+d:Ge/Collim/SlatGap          = 1.5 mm
+i:Ge/Collim/NSlats           = 40
+d:Ge/Collim/SlitWidth        = 40. mm
+s:Ge/Collim/Slot/Material    = "Vacuum"
+d:Ge/Collim/TransZ = 15. mm             # front face at z = 0
+
+s:Ge/Crystal/Type     = "TsBox"
+s:Ge/Crystal/Parent   = "World"
+s:Ge/Crystal/Material = "NaI"
+d:Ge/Crystal/HLX = 60. mm
+d:Ge/Crystal/HLY = 60. mm
+d:Ge/Crystal/HLZ = 4.75 mm
+d:Ge/Crystal/TransZ = 35.0 mm
+
+s:Ge/Src/Type = "TsBox"
+s:Ge/Src/Parent = "World"
+s:Ge/Src/Material = "Vacuum"
+d:Ge/Src/HLX = 0.01 mm
+d:Ge/Src/HLY = 0.01 mm
+d:Ge/Src/HLZ = 0.01 mm
+d:Ge/Src/TransZ = -100. mm
+s:So/Beam/Type = "Isotropic"
+s:So/Beam/Component = "Src"
+s:So/Beam/BeamParticle = "gamma"
+d:So/Beam/BeamEnergy = 140.5 keV
+i:So/Beam/NumberOfHistoriesInRun = 2000000
+
+s:Sc/Spec/Quantity   = "EDepSpectrum"
+s:Sc/Spec/Component  = "Crystal"
+s:Sc/Spec/OutputType = "ASCII"
+s:Sc/Spec/OutputFile = "slitslat"
+s:Sc/Spec/IfOutputFileAlreadyExists = "Overwrite"
+b:Ts/PauseBeforeQuit = "False"

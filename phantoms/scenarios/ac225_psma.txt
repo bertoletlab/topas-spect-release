@@ -1,0 +1,142 @@
+# Scenario: Ac-225 PSMA (mCRPC) patient-like activity phantom, with daughter redistribution.
+# Parent (Ac-225 on the PSMA ligand) follows the SAME organ distribution as Lu-177 PSMA - the
+# standard Ac-225-PSMA dosimetry derives it by extrapolating the Lu-177-PSMA time-activity curves
+# (Kratochwil 2017). Two SPECT lines: 218 keV (Fr-221 ~ parent location) and 440 keV (Bi-213, which
+# partly REDISTRIBUTES to the kidney). Provenance: research/knowledge/rpt-biodistribution/.
+#
+# This file emits the 218 keV parent map (Fr-221) from every hot region PLUS a separate 440 keV
+# Bi-213 "redistribution" source in the kidneys (+~15% at imaging time; medulla-weighted). The
+# 440/218 kidney ratio > 1 is the clinical redistribution signature (Liubchenko 2024, Delker 2023).
+# Pb-209 (beta) is NOT imageable and is omitted. Salivary is the Ac-225 dose-limiting organ.
+# Emission is mono-line for speed; for the full chain physics + equilibrium over an acquisition,
+# emit the Ac-225 ion and enable radioactive decay (see docs/phantoms.md acquisition section).
+# HISTORIES = round( BaseHistories(=50000) * conc_ratio * volume/kidneyVolume ). Edit freely.
+
+# ====================== Body (attenuator) ======================
+s:Ge/Torso/Type = "G4EllipticalTube"
+s:Ge/Torso/Parent = "World"
+s:Ge/Torso/Material = "G4_TISSUE_SOFT_ICRP"
+d:Ge/Torso/HLX = 150. mm
+d:Ge/Torso/HLY = 100. mm
+d:Ge/Torso/HLZ = 200. mm
+
+# ====================== Organs (parent PSMA uptake; ratios rel. kidney=1.0) ======================
+s:Ge/KidneyL/Type = "G4Ellipsoid"
+s:Ge/KidneyL/Parent = "Torso"
+s:Ge/KidneyL/Material = "G4_TISSUE_SOFT_ICRP"
+d:Ge/KidneyL/HLX = 25. mm
+d:Ge/KidneyL/HLY = 18. mm
+d:Ge/KidneyL/HLZ = 45. mm
+d:Ge/KidneyL/TransX = -55. mm
+d:Ge/KidneyL/TransY = -40. mm
+d:Ge/KidneyL/TransZ = -10. mm
+s:Ge/KidneyR/Type = "G4Ellipsoid"
+s:Ge/KidneyR/Parent = "Torso"
+s:Ge/KidneyR/Material = "G4_TISSUE_SOFT_ICRP"
+d:Ge/KidneyR/HLX = 25. mm
+d:Ge/KidneyR/HLY = 18. mm
+d:Ge/KidneyR/HLZ = 45. mm
+d:Ge/KidneyR/TransX = 55. mm
+d:Ge/KidneyR/TransY = -40. mm
+d:Ge/KidneyR/TransZ = -10. mm
+s:Ge/Liver/Type = "G4Ellipsoid"
+s:Ge/Liver/Parent = "Torso"
+s:Ge/Liver/Material = "G4_TISSUE_SOFT_ICRP"
+d:Ge/Liver/HLX = 70. mm
+d:Ge/Liver/HLY = 45. mm
+d:Ge/Liver/HLZ = 60. mm
+d:Ge/Liver/TransX = 45. mm
+d:Ge/Liver/TransY = 10. mm
+d:Ge/Liver/TransZ = 80. mm
+s:Ge/SalivaryL/Type = "G4Ellipsoid"
+s:Ge/SalivaryL/Parent = "Torso"
+s:Ge/SalivaryL/Material = "G4_TISSUE_SOFT_ICRP"
+d:Ge/SalivaryL/HLX = 12. mm
+d:Ge/SalivaryL/HLY = 10. mm
+d:Ge/SalivaryL/HLZ = 18. mm
+d:Ge/SalivaryL/TransX = -40. mm
+d:Ge/SalivaryL/TransY = -20. mm
+d:Ge/SalivaryL/TransZ = 170. mm
+s:Ge/SalivaryR/Type = "G4Ellipsoid"
+s:Ge/SalivaryR/Parent = "Torso"
+s:Ge/SalivaryR/Material = "G4_TISSUE_SOFT_ICRP"
+d:Ge/SalivaryR/HLX = 12. mm
+d:Ge/SalivaryR/HLY = 10. mm
+d:Ge/SalivaryR/HLZ = 18. mm
+d:Ge/SalivaryR/TransX = 40. mm
+d:Ge/SalivaryR/TransY = -20. mm
+d:Ge/SalivaryR/TransZ = 170. mm
+# Lesions
+s:Ge/NodalMet/Type = "TsSphere"
+s:Ge/NodalMet/Parent = "Torso"
+s:Ge/NodalMet/Material = "G4_TISSUE_SOFT_ICRP"
+d:Ge/NodalMet/RMax = 12. mm
+d:Ge/NodalMet/TransX = -30. mm
+d:Ge/NodalMet/TransY = -5. mm
+d:Ge/NodalMet/TransZ = -90. mm
+s:Ge/BoneMet/Type = "TsSphere"
+s:Ge/BoneMet/Parent = "Torso"
+s:Ge/BoneMet/Material = "G4_BONE_CORTICAL_ICRP"
+d:Ge/BoneMet/RMax = 10. mm
+d:Ge/BoneMet/TransX = 30. mm
+d:Ge/BoneMet/TransY = 60. mm
+d:Ge/BoneMet/TransZ = -40. mm
+
+# ====================== 218 keV parent map (Fr-221) ======================
+s:So/KidneyL218/Type = "Volumetric"
+s:So/KidneyL218/Component = "KidneyL"
+s:So/KidneyL218/VolumetricParticle = "gamma"
+d:So/KidneyL218/VolumetricEnergy = 218. keV
+s:So/KidneyL218/ActiveMaterial = "G4_TISSUE_SOFT_ICRP"
+i:So/KidneyL218/NumberOfHistoriesInRun = 50000
+s:So/KidneyR218/Type = "Volumetric"
+s:So/KidneyR218/Component = "KidneyR"
+s:So/KidneyR218/VolumetricParticle = "gamma"
+d:So/KidneyR218/VolumetricEnergy = 218. keV
+s:So/KidneyR218/ActiveMaterial = "G4_TISSUE_SOFT_ICRP"
+i:So/KidneyR218/NumberOfHistoriesInRun = 50000
+s:So/Liver218/Type = "Volumetric"
+s:So/Liver218/Component = "Liver"
+s:So/Liver218/VolumetricParticle = "gamma"
+d:So/Liver218/VolumetricEnergy = 218. keV
+s:So/Liver218/ActiveMaterial = "G4_TISSUE_SOFT_ICRP"
+i:So/Liver218/NumberOfHistoriesInRun = 116700
+s:So/SalivaryL218/Type = "Volumetric"
+s:So/SalivaryL218/Component = "SalivaryL"
+s:So/SalivaryL218/VolumetricParticle = "gamma"
+d:So/SalivaryL218/VolumetricEnergy = 218. keV
+s:So/SalivaryL218/ActiveMaterial = "G4_TISSUE_SOFT_ICRP"
+i:So/SalivaryL218/NumberOfHistoriesInRun = 8000
+s:So/SalivaryR218/Type = "Volumetric"
+s:So/SalivaryR218/Component = "SalivaryR"
+s:So/SalivaryR218/VolumetricParticle = "gamma"
+d:So/SalivaryR218/VolumetricEnergy = 218. keV
+s:So/SalivaryR218/ActiveMaterial = "G4_TISSUE_SOFT_ICRP"
+i:So/SalivaryR218/NumberOfHistoriesInRun = 8000
+s:So/NodalMet218/Type = "Volumetric"
+s:So/NodalMet218/Component = "NodalMet"
+s:So/NodalMet218/VolumetricParticle = "gamma"
+d:So/NodalMet218/VolumetricEnergy = 218. keV
+s:So/NodalMet218/ActiveMaterial = "G4_TISSUE_SOFT_ICRP"
+i:So/NodalMet218/NumberOfHistoriesInRun = 42700
+s:So/BoneMet218/Type = "Volumetric"
+s:So/BoneMet218/Component = "BoneMet"
+s:So/BoneMet218/VolumetricParticle = "gamma"
+d:So/BoneMet218/VolumetricEnergy = 218. keV
+s:So/BoneMet218/ActiveMaterial = "G4_BONE_CORTICAL_ICRP"
+i:So/BoneMet218/NumberOfHistoriesInRun = 32100
+
+# ====================== 440 keV Bi-213 kidney redistribution (~+15% of kidney parent) ======================
+# The clinical daughter signature: extra Bi-213 activity in the kidneys, imaged at 440 keV only.
+s:So/KidneyL440/Type = "Volumetric"
+s:So/KidneyL440/Component = "KidneyL"
+s:So/KidneyL440/VolumetricParticle = "gamma"
+d:So/KidneyL440/VolumetricEnergy = 440. keV
+s:So/KidneyL440/ActiveMaterial = "G4_TISSUE_SOFT_ICRP"
+i:So/KidneyL440/NumberOfHistoriesInRun = 7500
+s:So/KidneyR440/Type = "Volumetric"
+s:So/KidneyR440/Component = "KidneyR"
+s:So/KidneyR440/VolumetricParticle = "gamma"
+d:So/KidneyR440/VolumetricEnergy = 440. keV
+s:So/KidneyR440/ActiveMaterial = "G4_TISSUE_SOFT_ICRP"
+i:So/KidneyR440/NumberOfHistoriesInRun = 7500

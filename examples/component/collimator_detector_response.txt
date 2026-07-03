@@ -1,0 +1,74 @@
+# Collimator-detector response (point-spread function).
+# Point source in front of a parallel-hole collimator + crystal. The energy deposit
+# binned on the crystal gives the distance-dependent PSF and septal-penetration tail.
+# Collimator shown: Siemens Symbia LEHR (Pb, 1.11 / 0.16 / 24.05 mm). Move the source
+# (Ge/Src/TransZ = -distance) to map resolution vs. distance.
+
+i:Ts/NumberOfThreads = 0
+b:Ge/QuitIfOverlapDetected = "True"
+
+sv:Ma/Lead/Components = 1 "Lead"
+uv:Ma/Lead/Fractions  = 1 1.0
+d:Ma/Lead/Density     = 11.35 g/cm3
+sv:Ma/NaI/Components = 2 "Sodium" "Iodine"
+uv:Ma/NaI/Fractions  = 2 0.1534 0.8466
+d:Ma/NaI/Density     = 3.67 g/cm3
+
+sv:Ph/Default/Modules     = 1 "g4em-penelope"
+b:Ph/Default/Fluorescence = "True"
+d:Ph/Default/CutForGamma    = 0.05 mm
+d:Ph/Default/CutForElectron = 0.05 mm
+
+d:Ge/World/HLX = 250. mm
+d:Ge/World/HLY = 250. mm
+d:Ge/World/HLZ = 250. mm
+s:Ge/World/Material = "Vacuum"
+
+s:Ge/Collim/Type     = "TsParallelHoleCollimator"
+s:Ge/Collim/Parent   = "World"
+s:Ge/Collim/Material = "Lead"
+d:Ge/Collim/HoleDiameter     = 1.11 mm
+d:Ge/Collim/SeptalThickness  = 0.16 mm
+d:Ge/Collim/CollimatorLength = 24.05 mm
+i:Ge/Collim/NHolesX = 80
+i:Ge/Collim/NHolesY = 80
+s:Ge/Collim/Hole/Material = "Vacuum"
+d:Ge/Collim/TransZ = 12.025 mm      # front face at z = 0
+
+s:Ge/Crystal/Type     = "TsBox"
+s:Ge/Crystal/Parent   = "World"
+s:Ge/Crystal/Material = "NaI"
+d:Ge/Crystal/HLX = 64. mm
+d:Ge/Crystal/HLY = 64. mm
+d:Ge/Crystal/HLZ = 4.75 mm
+d:Ge/Crystal/TransZ = 29.05 mm
+i:Ge/Crystal/XBins = 128
+i:Ge/Crystal/YBins = 128
+
+s:Ge/Src/Type = "TsBox"
+s:Ge/Src/Parent = "World"
+s:Ge/Src/Material = "Vacuum"
+d:Ge/Src/HLX = 0.01 mm
+d:Ge/Src/HLY = 0.01 mm
+d:Ge/Src/HLZ = 0.01 mm
+d:Ge/Src/TransZ = -100. mm          # source-to-collimator distance = 10 cm
+
+s:So/Beam/Type = "Beam"
+s:So/Beam/Component = "Src"
+s:So/Beam/BeamParticle = "gamma"
+d:So/Beam/BeamEnergy = 140.5 keV
+s:So/Beam/BeamPositionDistribution = "None"
+s:So/Beam/BeamAngularDistribution  = "Flat"
+d:So/Beam/BeamAngularCutoffX = 14. deg
+d:So/Beam/BeamAngularCutoffY = 14. deg
+d:So/Beam/BeamAngularSpreadX = 14. deg
+d:So/Beam/BeamAngularSpreadY = 14. deg
+i:So/Beam/NumberOfHistoriesInRun = 5000000
+
+s:Sc/PSF/Quantity   = "EnergyDeposit"
+s:Sc/PSF/Component  = "Crystal"
+s:Sc/PSF/OutputType = "CSV"
+s:Sc/PSF/OutputFile = "cdr_symbia_lehr_140p5keV_10cm"
+s:Sc/PSF/IfOutputFileAlreadyExists = "Overwrite"
+b:Sc/PSF/OutputToConsole = "False"
+b:Ts/PauseBeforeQuit = "False"

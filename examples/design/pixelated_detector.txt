@@ -1,0 +1,55 @@
+# Design example: general pixelated detector (native OpenTOPAS TsPixelatedBox).
+# TsPixelatedBox is the general parametric detector: choose the pixel material, pixel size, pitch and
+# count. Our scorers attach to the component by name (Sc/.../Component = "Det"). This deck records
+# the crystal energy response of a CZT detector; swap Pixel/Material + PixelSizeZ for any crystal.
+# Run from this example's folder: topas pixelated_detector.txt
+
+i:Ts/NumberOfThreads = 1
+
+sv:Ma/CZT/Components = 3 "Cadmium" "Zinc" "Tellurium"
+uv:Ma/CZT/Fractions  = 3 0.4632 0.0300 0.5068
+d:Ma/CZT/Density     = 5.78 g/cm3
+
+sv:Ph/Default/Modules = 1 "g4em-penelope"
+b:Ph/Default/Fluorescence = "True"
+
+d:Ge/World/HLX = 200. mm
+d:Ge/World/HLY = 200. mm
+d:Ge/World/HLZ = 200. mm
+s:Ge/World/Material = "Vacuum"
+
+# Native general pixelated detector: frame material + Pixel/Material sub-volume.
+s:Ge/Det/Type = "TsPixelatedBox"
+s:Ge/Det/Parent = "World"
+s:Ge/Det/Material = "Vacuum"
+s:Ge/Det/Pixel/Material = "CZT"
+i:Ge/Det/NumberOfPixelsX = 32
+i:Ge/Det/NumberOfPixelsY = 32
+d:Ge/Det/PixelSizeX = 2.46 mm
+d:Ge/Det/PixelSizeY = 2.46 mm
+d:Ge/Det/PixelSizeZ = 7.25 mm
+d:Ge/Det/PitchX = 2.46 mm
+d:Ge/Det/PitchY = 2.46 mm
+d:Ge/Det/TransZ = 0. mm
+
+s:Ge/Src/Type = "TsBox"
+s:Ge/Src/Parent = "World"
+s:Ge/Src/Material = "Vacuum"
+d:Ge/Src/HLX = 0.01 mm
+d:Ge/Src/HLY = 0.01 mm
+d:Ge/Src/HLZ = 0.01 mm
+d:Ge/Src/TransZ = -50. mm
+s:So/Beam/Type = "Beam"
+s:So/Beam/Component = "Src"
+s:So/Beam/BeamParticle = "gamma"
+d:So/Beam/BeamEnergy = 140.5 keV
+s:So/Beam/BeamPositionDistribution = "None"
+s:So/Beam/BeamAngularDistribution = "None"
+i:So/Beam/NumberOfHistoriesInRun = 500000
+
+s:Sc/Spec/Quantity   = "EDepSpectrum"
+s:Sc/Spec/Component  = "Det"
+s:Sc/Spec/OutputType = "ASCII"
+s:Sc/Spec/OutputFile = "pixelated_detector"
+s:Sc/Spec/IfOutputFileAlreadyExists = "Overwrite"
+b:Ts/PauseBeforeQuit = "False"

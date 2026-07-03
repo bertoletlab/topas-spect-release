@@ -1,0 +1,17 @@
+name: tests
+on: [push, pull_request]
+jobs:
+  python-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.11" }
+      - name: Install Python deps
+        run: pip install "numpy<2" scipy "pydicom>=2.3"
+      - name: Ring-motion algorithm tests (contour, docking, collision - PHI-free)
+        run: python3 tests/test_ring_motion.py
+      - name: Dynamic-acquisition generator tests (native / tsRTS / VR decks)
+        run: python3 tests/test_dynamic_acquisition.py
+# NOTE: tests/smoke_decks.sh and tests/control_experiment.py require a topas-spect build
+# (set TOPAS_BIN) and are run as a release gate, not in this lightweight CI.

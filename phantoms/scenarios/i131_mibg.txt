@@ -1,0 +1,137 @@
+# Scenario: I-131 mIBG (neuroendocrine) patient-like activity phantom.
+# I-131-mIBG treats neuroblastoma / pheochromocytoma / paraganglioma. Physiological uptake in liver,
+# heart, salivary glands, adrenal medulla, and urinary excretion (bladder), plus a hot tumor.
+# Imaging line: I-131 364 keV. Ratios are relative to LIVER = 1.0 from instantaneous SUV at 24 h
+# (Brady 2019); the spleen value is a cumulated-DOSE proxy (concentration NOT FOUND) and the
+# tumor:liver ratio is cross-study (flagged). Provenance: research/knowledge/rpt-biodistribution/.
+# HISTORIES = round( BaseHistories(=50000) * conc_ratio * volume/liverVolume ). Edit freely.
+
+# ====================== Body (attenuator) ======================
+s:Ge/Torso/Type = "G4EllipticalTube"
+s:Ge/Torso/Parent = "World"
+s:Ge/Torso/Material = "G4_TISSUE_SOFT_ICRP"
+d:Ge/Torso/HLX = 150. mm
+d:Ge/Torso/HLY = 100. mm
+d:Ge/Torso/HLZ = 200. mm
+
+# ====================== Organs (ratios rel. liver = 1.0) ======================
+s:Ge/Liver/Type = "G4Ellipsoid"
+s:Ge/Liver/Parent = "Torso"
+s:Ge/Liver/Material = "G4_TISSUE_SOFT_ICRP"
+d:Ge/Liver/HLX = 70. mm
+d:Ge/Liver/HLY = 45. mm
+d:Ge/Liver/HLZ = 60. mm
+d:Ge/Liver/TransX = 45. mm
+d:Ge/Liver/TransY = 10. mm
+d:Ge/Liver/TransZ = 80. mm
+s:Ge/Heart/Type = "G4Ellipsoid"
+s:Ge/Heart/Parent = "Torso"
+s:Ge/Heart/Material = "G4_TISSUE_SOFT_ICRP"
+d:Ge/Heart/HLX = 35. mm
+d:Ge/Heart/HLY = 30. mm
+d:Ge/Heart/HLZ = 45. mm
+d:Ge/Heart/TransX = -70. mm
+d:Ge/Heart/TransY = -10. mm
+d:Ge/Heart/TransZ = 120. mm
+s:Ge/SalivaryL/Type = "G4Ellipsoid"
+s:Ge/SalivaryL/Parent = "Torso"
+s:Ge/SalivaryL/Material = "G4_TISSUE_SOFT_ICRP"
+d:Ge/SalivaryL/HLX = 12. mm
+d:Ge/SalivaryL/HLY = 10. mm
+d:Ge/SalivaryL/HLZ = 18. mm
+d:Ge/SalivaryL/TransX = -40. mm
+d:Ge/SalivaryL/TransY = -20. mm
+d:Ge/SalivaryL/TransZ = 170. mm
+s:Ge/SalivaryR/Type = "G4Ellipsoid"
+s:Ge/SalivaryR/Parent = "Torso"
+s:Ge/SalivaryR/Material = "G4_TISSUE_SOFT_ICRP"
+d:Ge/SalivaryR/HLX = 12. mm
+d:Ge/SalivaryR/HLY = 10. mm
+d:Ge/SalivaryR/HLZ = 18. mm
+d:Ge/SalivaryR/TransX = 40. mm
+d:Ge/SalivaryR/TransY = -20. mm
+d:Ge/SalivaryR/TransZ = 170. mm
+s:Ge/AdrenalL/Type = "G4Ellipsoid"
+s:Ge/AdrenalL/Parent = "Torso"
+s:Ge/AdrenalL/Material = "G4_TISSUE_SOFT_ICRP"
+d:Ge/AdrenalL/HLX = 10. mm
+d:Ge/AdrenalL/HLY = 8. mm
+d:Ge/AdrenalL/HLZ = 12. mm
+d:Ge/AdrenalL/TransX = -50. mm
+d:Ge/AdrenalL/TransY = -40. mm
+d:Ge/AdrenalL/TransZ = 30. mm
+s:Ge/Spleen/Type = "G4Ellipsoid"
+s:Ge/Spleen/Parent = "Torso"
+s:Ge/Spleen/Material = "G4_TISSUE_SOFT_ICRP"
+d:Ge/Spleen/HLX = 30. mm
+d:Ge/Spleen/HLY = 22. mm
+d:Ge/Spleen/HLZ = 35. mm
+d:Ge/Spleen/TransX = -80. mm
+d:Ge/Spleen/TransY = 15. mm
+d:Ge/Spleen/TransZ = 35. mm
+s:Ge/Bladder/Type = "G4Ellipsoid"
+s:Ge/Bladder/Parent = "Torso"
+s:Ge/Bladder/Material = "G4_TISSUE_SOFT_ICRP"
+d:Ge/Bladder/HLX = 30. mm
+d:Ge/Bladder/HLY = 25. mm
+d:Ge/Bladder/HLZ = 25. mm
+d:Ge/Bladder/TransY = -30. mm
+d:Ge/Bladder/TransZ = -150. mm
+# Tumor (paraganglioma; ~12x liver, cross-study - flagged)
+s:Ge/Tumor/Type = "TsSphere"
+s:Ge/Tumor/Parent = "Torso"
+s:Ge/Tumor/Material = "G4_TISSUE_SOFT_ICRP"
+d:Ge/Tumor/RMax = 15. mm
+d:Ge/Tumor/TransX = 40. mm
+d:Ge/Tumor/TransY = -30. mm
+d:Ge/Tumor/TransZ = -30. mm
+
+# ====================== Activity (I-131 364 keV; one Volumetric source per region) ======================
+s:So/LiverSrc/Type = "Volumetric"
+s:So/LiverSrc/Component = "Liver"
+s:So/LiverSrc/VolumetricParticle = "gamma"
+d:So/LiverSrc/VolumetricEnergy = 364. keV
+s:So/LiverSrc/ActiveMaterial = "G4_TISSUE_SOFT_ICRP"
+i:So/LiverSrc/NumberOfHistoriesInRun = 50000
+s:So/HeartSrc/Type = "Volumetric"
+s:So/HeartSrc/Component = "Heart"
+s:So/HeartSrc/VolumetricParticle = "gamma"
+d:So/HeartSrc/VolumetricEnergy = 364. keV
+s:So/HeartSrc/ActiveMaterial = "G4_TISSUE_SOFT_ICRP"
+i:So/HeartSrc/NumberOfHistoriesInRun = 16250
+s:So/SalivaryLSrc/Type = "Volumetric"
+s:So/SalivaryLSrc/Component = "SalivaryL"
+s:So/SalivaryLSrc/VolumetricParticle = "gamma"
+d:So/SalivaryLSrc/VolumetricEnergy = 364. keV
+s:So/SalivaryLSrc/ActiveMaterial = "G4_TISSUE_SOFT_ICRP"
+i:So/SalivaryLSrc/NumberOfHistoriesInRun = 1600
+s:So/SalivaryRSrc/Type = "Volumetric"
+s:So/SalivaryRSrc/Component = "SalivaryR"
+s:So/SalivaryRSrc/VolumetricParticle = "gamma"
+d:So/SalivaryRSrc/VolumetricEnergy = 364. keV
+s:So/SalivaryRSrc/ActiveMaterial = "G4_TISSUE_SOFT_ICRP"
+i:So/SalivaryRSrc/NumberOfHistoriesInRun = 1600
+s:So/AdrenalLSrc/Type = "Volumetric"
+s:So/AdrenalLSrc/Component = "AdrenalL"
+s:So/AdrenalLSrc/VolumetricParticle = "gamma"
+d:So/AdrenalLSrc/VolumetricEnergy = 364. keV
+s:So/AdrenalLSrc/ActiveMaterial = "G4_TISSUE_SOFT_ICRP"
+i:So/AdrenalLSrc/NumberOfHistoriesInRun = 400
+s:So/SpleenSrc/Type = "Volumetric"
+s:So/SpleenSrc/Component = "Spleen"
+s:So/SpleenSrc/VolumetricParticle = "gamma"
+d:So/SpleenSrc/VolumetricEnergy = 364. keV
+s:So/SpleenSrc/ActiveMaterial = "G4_TISSUE_SOFT_ICRP"
+i:So/SpleenSrc/NumberOfHistoriesInRun = 3100
+s:So/BladderSrc/Type = "Volumetric"
+s:So/BladderSrc/Component = "Bladder"
+s:So/BladderSrc/VolumetricParticle = "gamma"
+d:So/BladderSrc/VolumetricEnergy = 364. keV
+s:So/BladderSrc/ActiveMaterial = "G4_TISSUE_SOFT_ICRP"
+i:So/BladderSrc/NumberOfHistoriesInRun = 13900
+s:So/TumorSrc/Type = "Volumetric"
+s:So/TumorSrc/Component = "Tumor"
+s:So/TumorSrc/VolumetricParticle = "gamma"
+d:So/TumorSrc/VolumetricEnergy = 364. keV
+s:So/TumorSrc/ActiveMaterial = "G4_TISSUE_SOFT_ICRP"
+i:So/TumorSrc/NumberOfHistoriesInRun = 10700

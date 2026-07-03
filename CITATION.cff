@@ -1,0 +1,30 @@
+cff-version: 1.2.0
+title: OpenTOPAS-SPECT
+message: "If you use this software, please cite it as below."
+type: software
+authors:
+  - given-names: Alejandro
+    family-names: Bertolet
+    affiliation: "Massachusetts General Hospital and Harvard Medical School"
+    orcid: "https://orcid.org/0000-0002-9890-693X"
+  - given-names: "Victor V."
+    family-names: Onecha
+    affiliation: "Massachusetts General Hospital and Harvard Medical School"
+    orcid: "https://orcid.org/0000-0002-3531-2851"
+repository-code: "https://github.com/bertoletlab/topas-spect-release"
+url: "https://github.com/bertoletlab/topas-spect-release"
+abstract: >-
+  OpenTOPAS extensions for SPECT imaging simulation: parallel-hole, pinhole, and
+  slit-slat collimators; energy-resolved and pixelated detectors; patient-like
+  activity phantoms; dynamic acquisitions with native isotope decay; CT-driven
+  detector motion; and forced-detection variance reduction.
+keywords:
+  - SPECT
+  - Monte Carlo
+  - OpenTOPAS
+  - Geant4
+  - radiopharmaceutical therapy
+  - nuclear medicine imaging
+license: MIT
+version: 0.1.1
+date-released: "2026-07-03"

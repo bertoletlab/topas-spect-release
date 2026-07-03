@@ -1,0 +1,102 @@
+# Native OpenTOPAS variance reduction: how to configure it, and how to VALIDATE it.
+#
+# This example shows the `Vr/` machinery and, more importantly, the validation workflow every biased
+# run needs. A Tc-99m (140.5 keV) point source sits inside a water cylinder and is imaged through a
+# LEHR collimator onto a NaI crystal. The `Vr/` block sets up Geant4 directional splitting aimed at
+# the crystal.
+#
+# MANDATORY validation. Native VR changes particle WEIGHTS, so always confirm it against a short
+# unbiased baseline: set `Vr/UseVarianceReduction = "False"` and check the scored quantity agrees
+# within statistics. This only works if the scorer accumulates by summing WEIGHTS. OpenTOPAS's
+# EnergyDeposit does, and this package's EDepSpectrum writes a Weight column (histogram Edep weighted
+# by Weight); a scorer that ignores weights reports a biased number even though the transport is
+# correct, so validate before trusting.
+#
+# For SPECT specifically: Geant4 directional splitting (`setSecBiasing` + directional splitting)
+# biases SECONDARY photon PRODUCTION, such as bremsstrahlung, toward a target. It does NOT split the
+# Compton-scattered gamma that continues as the primary track, so on its own it gives little or no
+# gain for the SPECT problem of getting scattered/primary gammas through a collimator to a small
+# detector (run this with VR on and off: the deposited energy is essentially identical). For SPECT the
+# effective variance reduction is FORCED DETECTION (examples/vr/forced_detection.txt), which projects
+# every forward photon through the collimator analytically. Use this deck to learn the native VR
+# parameters and the validation step; use forced detection to actually speed up SPECT.
+#
+# Run from this example's folder:  topas native_vr.txt
+
+i:Ts/NumberOfThreads = 4
+sv:Ph/Default/Modules = 1 "g4em-penelope"
+d:Ph/Default/CutForGamma    = 0.05 mm
+d:Ph/Default/CutForElectron = 0.05 mm
+
+d:Ge/World/HLX = 300. mm
+d:Ge/World/HLY = 300. mm
+d:Ge/World/HLZ = 300. mm
+s:Ge/World/Material = "Vacuum"
+
+sv:Ma/NaI/Components = 2 "Sodium" "Iodine"
+uv:Ma/NaI/Fractions  = 2 0.1534 0.8466
+d:Ma/NaI/Density     = 3.67 g/cm3
+
+# water phantom (the scattering medium) with the source inside it
+s:Ge/Phantom/Type = "TsCylinder"
+s:Ge/Phantom/Parent = "World"
+s:Ge/Phantom/Material = "G4_WATER"
+d:Ge/Phantom/RMax = 100. mm
+d:Ge/Phantom/HL = 100. mm
+d:Ge/Phantom/RotX = 90. deg
+d:Ge/Phantom/TransZ = -100. mm
+
+# LEHR collimator (Tc-99m 140.5 keV)
+s:Ge/Collim/Type = "TsParallelHoleCollimator"
+s:Ge/Collim/Parent = "World"
+s:Ge/Collim/Material = "Lead"
+d:Ge/Collim/HoleDiameter = 1.11 mm
+d:Ge/Collim/SeptalThickness = 0.16 mm
+d:Ge/Collim/CollimatorLength = 24.05 mm
+i:Ge/Collim/NHolesX = 120
+i:Ge/Collim/NHolesY = 120
+s:Ge/Collim/Hole/Material = "Vacuum"
+d:Ge/Collim/TransZ = 12.025 mm
+
+s:Ge/Crystal/Type = "TsBox"
+s:Ge/Crystal/Parent = "World"
+s:Ge/Crystal/Material = "NaI"
+d:Ge/Crystal/HLX = 90. mm
+d:Ge/Crystal/HLY = 90. mm
+d:Ge/Crystal/HLZ = 4.75 mm
+d:Ge/Crystal/TransZ = 29.05 mm
+
+s:Ge/Src/Type = "TsBox"
+s:Ge/Src/Parent = "Phantom"
+s:Ge/Src/Material = "G4_WATER"
+d:Ge/Src/HLX = 0.01 mm
+d:Ge/Src/HLY = 0.01 mm
+d:Ge/Src/HLZ = 0.01 mm
+s:So/Beam/Type = "Isotropic"
+s:So/Beam/Component = "Src"
+s:So/Beam/BeamParticle = "gamma"
+d:So/Beam/BeamEnergy = 140.5 keV
+i:So/Beam/NumberOfHistoriesInRun = 2000000
+
+# weight-aware scorer (EnergyDeposit sums weight x edep)
+s:Sc/Edep/Quantity = "EnergyDeposit"
+s:Sc/Edep/Component = "Crystal"
+s:Sc/Edep/OutputType = "CSV"
+s:Sc/Edep/OutputFile = "native_vr_edep"
+s:Sc/Edep/IfOutputFileAlreadyExists = "Overwrite"
+b:Ts/PauseBeforeQuit = "False"
+
+# ============================ variance reduction ============================
+# Toggle this to "False" to get the unbiased baseline you validate against.
+b:Vr/UseVarianceReduction = "True"
+
+# Directional splitting: split scattered photons toward the detector, roulette those going away.
+s:Vr/DirBias/Type = "UniformSplitting"
+sv:Vr/DirBias/forregion/DefaultRegionForTheWorld/processesNamed  = 1 "compt"
+uv:Vr/DirBias/ForRegion/DefaultRegionForTheWorld/SplitNumber     = 1 8.
+dv:Vr/DirBias/ForRegion/DefaultRegionForTheWorld/MaximumEnergies = 1 1. MeV
+b:Vr/DirBias/UseDirectionalSplitting = "True"
+d:Vr/DirBias/TransX = 0. cm
+d:Vr/DirBias/TransY = 0. cm
+d:Vr/DirBias/TransZ = 2.905 cm         # crystal center (the detector target)
+d:Vr/DirBias/RMax   = 9. cm            # crystal radius

@@ -1,0 +1,44 @@
+# Siemens Symbia, HE (High-Energy: I-131 364 keV, Ac-225 440 keV, Y-90 brems) + NaI crystal.
+# Geometry (hex, flat-to-flat) 4.0/2.0/59.7 mm. Sources: Shahmari 2019 (SY-HE); Pb-203/212 2025
+# (Symbia Intevo 6). Reliability B. NOTE: Asmi 2019 reports hole 5.06 mm, contradicted by the two
+# sources above (septum 2.0 and length 59.7 agree), treated as an erratum; hole 4.0 mm is used.
+# This is the Symbia HE collimator; the shorter e.cam-era HEGP (3.4/2.0/50.8) is systems/symbia_hegp.txt.
+# See research/knowledge/spect-collimator-geometry/.
+#
+# IncludeFile fragment. Defines materials + Ge/Collim (hole/septum/length) + Ge/Crystal
+# (material + thickness). The including deck must add World, physics, source, scorer, the
+# detector extents (NHolesX/Y, Crystal HLX/HLY, XBins/YBins) and the Z placements below.
+# See systems/README.md for the full contract. Include exactly one preset per deck.
+#
+# Recommended placement (front collimator face at z = 0):
+#   d:Ge/Collim/TransZ  = 29.85 mm      # CollimatorLength / 2
+#   d:Ge/Crystal/TransZ = 64.7 mm       # 0.25 mm gap behind the collimator back face
+# Photopeak windows (apply in post-processing): I-131 364 keV (20% -> 327.6-400.4 keV);
+#   Ac-225 440 keV (Bi-213); Y-90 bremsstrahlung is broad -- define a window separately.
+# Fast-path (TsForcedDetectionProjection) collimator numbers:
+#   HoleDiameter 4.0 mm, SeptalThickness 2.0 mm, CollimatorLength 59.7 mm.
+
+# --- Collimator septa: lead ---
+sv:Ma/Lead/Components = 1 "Lead"
+uv:Ma/Lead/Fractions  = 1 1.0
+d:Ma/Lead/Density     = 11.35 g/cm3
+
+# --- Crystal: sodium iodide ---
+sv:Ma/NaI/Components = 2 "Sodium" "Iodine"
+uv:Ma/NaI/Fractions  = 2 0.1534 0.8466
+d:Ma/NaI/Density     = 3.67 g/cm3
+
+# --- Collimator geometry (HE) ---
+s:Ge/Collim/Type             = "TsParallelHoleCollimator"
+s:Ge/Collim/Parent           = "World"
+s:Ge/Collim/Material         = "Lead"
+d:Ge/Collim/HoleDiameter     = 4.0 mm
+d:Ge/Collim/SeptalThickness  = 2.0 mm
+d:Ge/Collim/CollimatorLength = 59.7 mm
+s:Ge/Collim/Hole/Material    = "Vacuum"
+
+# --- Crystal geometry (NaI, 9.5 mm thick) ---
+s:Ge/Crystal/Type     = "TsBox"
+s:Ge/Crystal/Parent   = "World"
+s:Ge/Crystal/Material = "NaI"
+d:Ge/Crystal/HLZ      = 4.75 mm         # 9.5 mm thick

@@ -1,0 +1,67 @@
+# Design example: converging (cone-beam) collimator.
+# TsParallelHoleCollimator with a finite FocalLengthX = FocalLengthY focuses every channel toward a
+# point in front of the collimator, magnifying the image (m = f / (f - z)). Set only one focal
+# length for a fan-beam (focal line); use a negative value to diverge.
+# Run from this example's folder: topas converging_conebeam.txt
+
+i:Ts/NumberOfThreads = 1
+b:Ge/QuitIfOverlapDetected = "True"
+
+sv:Ma/Lead/Components = 1 "Lead"
+uv:Ma/Lead/Fractions  = 1 1.0
+d:Ma/Lead/Density     = 11.35 g/cm3
+sv:Ma/NaI/Components = 2 "Sodium" "Iodine"
+uv:Ma/NaI/Fractions  = 2 0.1534 0.8466
+d:Ma/NaI/Density     = 3.67 g/cm3
+
+sv:Ph/Default/Modules = 1 "g4em-penelope"
+b:Ph/Default/Fluorescence = "True"
+
+d:Ge/World/HLX = 300. mm
+d:Ge/World/HLY = 300. mm
+d:Ge/World/HLZ = 300. mm
+s:Ge/World/Material = "Vacuum"
+
+s:Ge/Collim/Type          = "TsParallelHoleCollimator"
+s:Ge/Collim/Parent        = "World"
+s:Ge/Collim/Material      = "Lead"
+d:Ge/Collim/HoleDiameter     = 1.5 mm
+d:Ge/Collim/SeptalThickness  = 0.2 mm
+d:Ge/Collim/CollimatorLength = 35.0 mm
+i:Ge/Collim/NHolesX = 90
+i:Ge/Collim/NHolesY = 90
+s:Ge/Collim/HoleShape = "Hex"
+s:Ge/Collim/Lattice   = "Hex"
+s:Ge/Collim/Hole/Material = "Vacuum"
+d:Ge/Collim/FocalLengthX = 200. mm      # cone-beam: focus 200 mm in front (magnifies by ~2 at 10 cm)
+d:Ge/Collim/FocalLengthY = 200. mm
+d:Ge/Collim/TransZ = 17.5 mm            # front face at z = 0
+
+s:Ge/Crystal/Type     = "TsBox"
+s:Ge/Crystal/Parent   = "World"
+s:Ge/Crystal/Material = "NaI"
+d:Ge/Crystal/HLX = 120. mm
+d:Ge/Crystal/HLY = 120. mm
+d:Ge/Crystal/HLZ = 4.75 mm
+d:Ge/Crystal/TransZ = 40.0 mm
+
+s:Ge/Src/Type = "TsBox"
+s:Ge/Src/Parent = "World"
+s:Ge/Src/Material = "Vacuum"
+d:Ge/Src/HLX = 0.01 mm
+d:Ge/Src/HLY = 0.01 mm
+d:Ge/Src/HLZ = 0.01 mm
+d:Ge/Src/TransX = 20. mm                # off-axis point: its image is magnified by ~2
+d:Ge/Src/TransZ = -100. mm
+s:So/Beam/Type = "Isotropic"
+s:So/Beam/Component = "Src"
+s:So/Beam/BeamParticle = "gamma"
+d:So/Beam/BeamEnergy = 140.5 keV
+i:So/Beam/NumberOfHistoriesInRun = 2000000
+
+s:Sc/Spec/Quantity   = "EDepSpectrum"
+s:Sc/Spec/Component  = "Crystal"
+s:Sc/Spec/OutputType = "ASCII"
+s:Sc/Spec/OutputFile = "converging_conebeam"
+s:Sc/Spec/IfOutputFileAlreadyExists = "Overwrite"
+b:Ts/PauseBeforeQuit = "False"

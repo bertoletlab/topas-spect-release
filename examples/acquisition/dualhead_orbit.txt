@@ -1,0 +1,74 @@
+# Full dual-head Anger SPECT system with orbital motion (a geometry/motion example, no radiation yet).
+# Two detector heads 180 deg apart are mounted on a gantry that orbits the patient 0->180 deg (full
+# 360 deg projection coverage), driven by one Linear time feature. A soft-tissue body phantom with a
+# bone spine sits at the center. This is the WHOLE camera mounted, ready for a phantom study.
+#
+# The same arrangement models any dual-head Anger camera (Siemens Symbia, GE Discovery/Infinia): the
+# heads here are bare NaI crystals; add a parallel-hole collimator in front of each (the hole geometry
+# for a given camera is in systems/) to model a specific system.
+#
+# To VISUALIZE the motion: open in the OpenTOPAS Qt GUI (b:Ts/UseQt = "True") and click run.
+# To ACQUIRE: add activity sources in the phantom (see phantoms/) and a scorer on each crystal; for
+# per-projection scoring, tools/make_dynamic_acquisition.py bakes one deck per projection.
+#
+# Run from this example's folder:  topas dualhead_orbit.txt
+i:Ts/NumberOfThreads = 1
+i:Tf/NumberOfSequentialTimes = 37
+d:Tf/TimelineStart = 0. s
+d:Tf/TimelineEnd = 36. s
+d:Ge/World/HLX = 420. mm
+d:Ge/World/HLY = 420. mm
+d:Ge/World/HLZ = 420. mm
+s:Ge/World/Material = "Vacuum"
+b:Ge/World/Invisible = "True"
+sv:Ph/Default/Modules = 1 "g4em-penelope"
+iv:Gr/Color/tc_nai = 3 40 200 120
+iv:Gr/Color/tc_czt = 3 60 90 230
+s:Ge/Body/Type = "G4EllipticalTube"
+s:Ge/Body/Parent = "World"
+s:Ge/Body/Material = "G4_TISSUE_SOFT_ICRP"
+d:Ge/Body/HLX = 150. mm
+d:Ge/Body/HLY = 130. mm
+d:Ge/Body/HLZ = 100. mm
+d:Ge/Body/RotX = 90. deg
+s:Ge/Body/DrawingStyle = "WireFrame"
+s:Ge/Body/Color = "lightblue"
+s:Ge/Spine/Type = "TsCylinder"
+s:Ge/Spine/Parent = "Body"
+s:Ge/Spine/Material = "G4_BONE_CORTICAL_ICRP"
+d:Ge/Spine/RMax = 15. mm
+d:Ge/Spine/HL = 90. mm
+d:Ge/Spine/TransY = -70. mm
+s:Ge/Spine/Color = "white"
+s:Ge/Gantry/Type = "Group"
+s:Ge/Gantry/Parent = "World"
+d:Ge/Gantry/RotY = Tf/Gantry/Value deg
+s:Tf/Gantry/Function = "Linear deg"
+d:Tf/Gantry/StartValue = 0. deg
+d:Tf/Gantry/Rate = 5.0 deg/s
+s:Ge/HeadA/Type = "TsBox"
+s:Ge/HeadA/Parent = "Gantry"
+s:Ge/HeadA/Material = "G4_SODIUM_IODIDE"
+d:Ge/HeadA/HLX = 190. mm
+d:Ge/HeadA/HLY = 145. mm
+d:Ge/HeadA/HLZ = 14. mm
+d:Ge/HeadA/TransZ = 290.0 mm
+d:Ge/HeadA/RotY = 180.0 deg
+s:Ge/HeadA/Color = "tc_nai"
+s:Ge/HeadB/Type = "TsBox"
+s:Ge/HeadB/Parent = "Gantry"
+s:Ge/HeadB/Material = "G4_SODIUM_IODIDE"
+d:Ge/HeadB/HLX = 190. mm
+d:Ge/HeadB/HLY = 145. mm
+d:Ge/HeadB/HLZ = 14. mm
+d:Ge/HeadB/TransZ = -290.0 mm
+d:Ge/HeadB/RotY = 0.0 deg
+s:Ge/HeadB/Color = "tc_nai"
+s:Gr/View/Type = "OpenGL"
+i:Gr/View/WindowSizeX = 1100
+i:Gr/View/WindowSizeY = 950
+d:Gr/View/Theta = 62 deg
+d:Gr/View/Phi = 26 deg
+u:Gr/View/Zoom = 1.1
+b:Ts/UseQt = "True"
+b:Ts/PauseBeforeQuit = "True"

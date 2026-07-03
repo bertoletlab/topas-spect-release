@@ -1,0 +1,41 @@
+# Siemens e.cam-era HEGP (High-Energy General-Purpose) collimator + NaI crystal.
+# Distinct from symbia_he.txt: this HEGP is 3.4/2.0/50.8 mm (e.cam era, also fitted on Symbia T6),
+# whereas the Symbia "HE" collimator is 4.0/2.0/59.7 mm. Do not conflate them.
+# Geometry (hexagonal, hole diameter = flat-to-flat): 3.4 / 2.0 / 50.8 mm.
+# Sources: Benabdallah 2021 Theranostics 11:9721 (Table 3, Symbia T6 HEGP); Shahmari 2019 NMR 22:45
+# (SE-HE). Reliability B. Siemens collimator geometry is vendor-proprietary; these are third-party
+# Monte Carlo reconstructions. Evidence: research/knowledge/spect-collimator-geometry/.
+#
+# IncludeFile fragment (see systems/README.md). Include exactly one preset per deck. The deck
+# adds World, physics, source, scorer, detector extents and the Z placements below.
+# Recommended placement (front collimator face at z = 0):
+#   d:Ge/Collim/TransZ  = 25.4 mm       # CollimatorLength / 2
+#   d:Ge/Crystal/TransZ = 55.8 mm       # 0.25 mm gap behind the collimator back face
+# Photopeak windows (post-processing): I-131 364 keV; high-energy lines.
+
+# --- Collimator septa: lead ---
+sv:Ma/Lead/Components = 1 "Lead"
+uv:Ma/Lead/Fractions  = 1 1.0
+d:Ma/Lead/Density     = 11.35 g/cm3
+
+# --- Crystal: sodium iodide ---
+sv:Ma/NaI/Components = 2 "Sodium" "Iodine"
+uv:Ma/NaI/Fractions  = 2 0.1534 0.8466
+d:Ma/NaI/Density     = 3.67 g/cm3
+
+# --- Collimator geometry (HEGP, hexagonal holes on a hex lattice) ---
+s:Ge/Collim/Type             = "TsParallelHoleCollimator"
+s:Ge/Collim/Parent           = "World"
+s:Ge/Collim/Material         = "Lead"
+d:Ge/Collim/HoleDiameter     = 3.4 mm
+d:Ge/Collim/SeptalThickness  = 2.0 mm
+d:Ge/Collim/CollimatorLength = 50.8 mm
+s:Ge/Collim/HoleShape        = "Hex"
+s:Ge/Collim/Lattice          = "Hex"
+s:Ge/Collim/Hole/Material    = "Vacuum"
+
+# --- Crystal geometry (NaI, 9.5 mm thick) ---
+s:Ge/Crystal/Type     = "TsBox"
+s:Ge/Crystal/Parent   = "World"
+s:Ge/Crystal/Material = "NaI"
+d:Ge/Crystal/HLZ      = 4.75 mm         # 9.5 mm thick

@@ -1,0 +1,54 @@
+# Publish the static landing website (website/) to GitHub Pages.
+#
+# This mirrors the OpenTOPAS setup: GitHub Pages hosts the project landing site, and the full
+# documentation is hosted separately on Read the Docs (see .readthedocs.yaml). The site is plain
+# static HTML, so there is no build step.
+#
+# Manual trigger only (no push trigger), so a deploy runs when you ask for one, not on every commit.
+# The deploy step is retried up to 3 times: actions/deploy-pages occasionally returns a transient
+# "Deployment failed, try again later." from its status poll, and a retry clears it. The job only
+# fails (and emails you) if all three attempts flake.
+name: Deploy website
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy3.outputs.page_url || steps.deploy2.outputs.page_url || steps.deploy1.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: website
+
+      # Attempt 1 — transient failure tolerated, we retry below.
+      - id: deploy1
+        uses: actions/deploy-pages@v4
+        continue-on-error: true
+
+      # Attempt 2 — only if attempt 1 flaked, after a short pause to let the backend recover.
+      - if: steps.deploy1.outcome == 'failure'
+        run: sleep 20
+      - id: deploy2
+        if: steps.deploy1.outcome == 'failure'
+        uses: actions/deploy-pages@v4
+        continue-on-error: true
+
+      # Attempt 3 — final try; its failure fails the job (so a genuine, persistent problem still surfaces).
+      - if: steps.deploy1.outcome == 'failure' && steps.deploy2.outcome == 'failure'
+        run: sleep 30
+      - id: deploy3
+        if: steps.deploy1.outcome == 'failure' && steps.deploy2.outcome == 'failure'
+        uses: actions/deploy-pages@v4

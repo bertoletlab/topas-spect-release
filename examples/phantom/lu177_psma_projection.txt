@@ -1,0 +1,76 @@
+# Phantom example: Lu-177 PSMA patient-like phantom imaged through a Symbia ME collimator + NaI.
+#
+# RECOMMENDED for patient phantoms: full-MC through a collimator is count-starved, so pair it with
+# forced detection (docs/variance_reduction.md, examples/vr/forced_detection.txt) for tractable runs.
+#
+# Combines the sourced activity phantom (phantoms/scenarios/lu177_psma.txt) with a medium-energy
+# collimator (the Lu-177 208 keV choice) and records a single planar ANTERIOR projection.
+#
+# The detector head sits BESIDE the patient (offset along -y), facing it radially: the collimator
+# bore points at the patient (+y) and the crystal spans the body's x and long (z) axes. This is one
+# view of a SPECT orbit; for the full acquisition that rotates the head around the patient long axis,
+# see examples/phantom/spect_acquisition.txt. For fast runs use the forced-detection scorer.
+# Run from this example's folder (or a space-free path): topas lu177_psma_projection.txt
+#
+# NOTE: the collimator/detector are defined inline here rather than via a second IncludeFile, because
+# OpenTOPAS does not allow two parallel top-level include chains to both set parameters. Include only the
+# phantom scenario; keep the acquisition side inline (or nest it).
+
+IncludeFile = ../../phantoms/scenarios/lu177_psma.txt     # Ge/Torso + organs/lesions + weighted sources
+
+i:Ts/NumberOfThreads = 4
+b:Ge/CheckForOverlaps = "True"
+b:Ge/QuitIfOverlapDetected = "True"
+
+sv:Ma/Lead/Components = 1 "Lead"
+uv:Ma/Lead/Fractions  = 1 1.0
+d:Ma/Lead/Density     = 11.35 g/cm3
+sv:Ma/NaI/Components = 2 "Sodium" "Iodine"
+uv:Ma/NaI/Fractions  = 2 0.1534 0.8466
+d:Ma/NaI/Density     = 3.67 g/cm3
+
+sv:Ph/Default/Modules = 1 "g4em-penelope"
+b:Ph/Default/Fluorescence = "True"
+d:Ph/Default/CutForGamma    = 0.5 mm
+d:Ph/Default/CutForElectron = 0.5 mm
+
+d:Ge/World/HLX = 400. mm
+d:Ge/World/HLY = 400. mm
+d:Ge/World/HLZ = 500. mm
+s:Ge/World/Material = "Vacuum"
+
+# Siemens Symbia ME collimator (2.94 / 1.14 / 40.64 mm), anterior head beside the patient.
+# RotX = -90 aims the collimator bore along +y (at the patient); after the rotation the panel spans
+# the patient x and z (long) axes. Front face ~13 cm from the torso surface.
+s:Ge/Collim/Type             = "TsParallelHoleCollimator"
+s:Ge/Collim/Parent           = "World"
+s:Ge/Collim/Material         = "Lead"
+d:Ge/Collim/HoleDiameter     = 2.94 mm
+d:Ge/Collim/SeptalThickness  = 1.14 mm
+d:Ge/Collim/CollimatorLength = 40.64 mm
+i:Ge/Collim/NHolesX = 76
+i:Ge/Collim/NHolesY = 100
+s:Ge/Collim/Hole/Material    = "Vacuum"
+d:Ge/Collim/TransY = -250. mm
+d:Ge/Collim/RotX   = 90. deg
+
+s:Ge/Crystal/Type     = "TsBox"
+s:Ge/Crystal/Parent   = "World"
+s:Ge/Crystal/Material = "NaI"
+d:Ge/Crystal/HLX = 160. mm
+d:Ge/Crystal/HLY = 4.75 mm
+d:Ge/Crystal/HLZ = 210. mm
+d:Ge/Crystal/TransY = -280. mm
+i:Ge/Crystal/XBins = 128
+i:Ge/Crystal/YBins = 1
+i:Ge/Crystal/ZBins = 128
+
+# Planar projection image (energy deposited per crystal bin); post-process with the 208 keV window.
+# Bins are (x, z): the anterior view separates salivary (high z) from kidneys/lesions (low z).
+s:Sc/Proj/Quantity   = "EnergyDeposit"
+s:Sc/Proj/Component  = "Crystal"
+s:Sc/Proj/OutputType = "CSV"
+s:Sc/Proj/OutputFile = "lu177_psma_projection"
+s:Sc/Proj/IfOutputFileAlreadyExists = "Overwrite"
+b:Sc/Proj/OutputToConsole = "False"
+b:Ts/PauseBeforeQuit = "False"

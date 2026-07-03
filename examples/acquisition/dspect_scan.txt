@@ -1,0 +1,176 @@
+# Full Spectrum Dynamics D-SPECT system: 9 swiveling CZT detector columns (a geometry/motion
+# example, no radiation yet). Unlike a rotating gamma camera, D-SPECT's columns do NOT orbit: they sit
+# in a fixed ~90 deg arc over the patient's left-anterior chest, all AIMED AT THE HEART, and each column
+# SWIVELS about its own vertical axis to sweep the myocardium. The heart sits at the focus of the arc,
+# offset anterior-left inside the torso, exactly as in a real cardiac D-SPECT study.
+#
+# The CZT column + tungsten square-hole collimator geometry is the D-SPECT preset (systems/dspect.txt,
+# Gambhir 2009). Here the columns are shown as bare CZT panels; add the collimator and a scorer per
+# column, plus activity in the heart, for an acquisition.
+#
+# To VISUALIZE the swivel motion: open in the OpenTOPAS Qt GUI (b:Ts/UseQt = "True") and click run.
+# Run from this example's folder:  topas dspect_scan.txt
+i:Ts/NumberOfThreads = 1
+i:Tf/NumberOfSequentialTimes = 21
+d:Tf/TimelineStart = 0. s
+d:Tf/TimelineEnd = 20. s
+d:Ge/World/HLX = 420. mm
+d:Ge/World/HLY = 420. mm
+d:Ge/World/HLZ = 420. mm
+s:Ge/World/Material = "Vacuum"
+b:Ge/World/Invisible = "True"
+sv:Ph/Default/Modules = 1 "g4em-penelope"
+iv:Gr/Color/tc_czt = 3 60 90 230
+s:Ge/Body/Type = "G4EllipticalTube"
+s:Ge/Body/Parent = "World"
+s:Ge/Body/Material = "G4_TISSUE_SOFT_ICRP"
+d:Ge/Body/HLX = 160. mm
+d:Ge/Body/HLY = 110. mm
+d:Ge/Body/HLZ = 110. mm
+d:Ge/Body/RotX = 90. deg
+d:Ge/Body/TransX = -60. mm
+d:Ge/Body/TransZ = -45. mm
+s:Ge/Body/DrawingStyle = "WireFrame"
+s:Ge/Body/Color = "lightblue"
+s:Ge/Heart/Type = "TsSphere"
+s:Ge/Heart/Parent = "Body"
+s:Ge/Heart/Material = "G4_MUSCLE_SKELETAL_ICRP"
+d:Ge/Heart/RMax = 35. mm
+d:Ge/Heart/TransX = 60. mm
+d:Ge/Heart/TransY = 45. mm
+d:Ge/Heart/TransZ = 0. mm
+s:Ge/Heart/Color = "red"
+s:Ge/Col0/Type = "TsBox"
+s:Ge/Col0/Parent = "World"
+s:Ge/Col0/Material = "G4_CADMIUM_TELLURIDE"
+d:Ge/Col0/HLX = 11. mm
+d:Ge/Col0/HLY = 80. mm
+d:Ge/Col0/HLZ = 2.5 mm
+d:Ge/Col0/TransX = 37.53 mm
+d:Ge/Col0/TransZ = 140.06 mm
+s:Ge/Col0/Color = "tc_czt"
+d:Ge/Col0/RotY = Tf/Col0R/Value deg
+s:Tf/Col0R/Function = "Step"
+dv:Tf/Col0R/Times = 21 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 s
+dv:Tf/Col0R/Values = 21 -37.00 -34.80 -32.60 -30.40 -28.20 -26.00 -23.80 -21.60 -19.40 -17.20 -15.00 -12.80 -10.60 -8.40 -6.20 -4.00 -1.80 0.40 2.60 4.80 7.00 deg
+
+s:Ge/Col1/Type = "TsBox"
+s:Ge/Col1/Parent = "World"
+s:Ge/Col1/Material = "G4_CADMIUM_TELLURIDE"
+d:Ge/Col1/HLX = 11. mm
+d:Ge/Col1/HLY = 80. mm
+d:Ge/Col1/HLZ = 2.5 mm
+d:Ge/Col1/TransX = 64.13 mm
+d:Ge/Col1/TransZ = 130.05 mm
+s:Ge/Col1/Color = "tc_czt"
+d:Ge/Col1/RotY = Tf/Col1R/Value deg
+s:Tf/Col1R/Function = "Step"
+dv:Tf/Col1R/Times = 21 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 s
+dv:Tf/Col1R/Values = 21 -48.25 -46.05 -43.85 -41.65 -39.45 -37.25 -35.05 -32.85 -30.65 -28.45 -26.25 -24.05 -21.85 -19.65 -17.45 -15.25 -13.05 -10.85 -8.65 -6.45 -4.25 deg
+
+s:Ge/Col2/Type = "TsBox"
+s:Ge/Col2/Parent = "World"
+s:Ge/Col2/Material = "G4_CADMIUM_TELLURIDE"
+d:Ge/Col2/HLX = 11. mm
+d:Ge/Col2/HLY = 80. mm
+d:Ge/Col2/HLZ = 2.5 mm
+d:Ge/Col2/TransX = 88.27 mm
+d:Ge/Col2/TransZ = 115.04 mm
+s:Ge/Col2/Color = "tc_czt"
+d:Ge/Col2/RotY = Tf/Col2R/Value deg
+s:Tf/Col2R/Function = "Step"
+dv:Tf/Col2R/Times = 21 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 s
+dv:Tf/Col2R/Values = 21 -59.50 -57.30 -55.10 -52.90 -50.70 -48.50 -46.30 -44.10 -41.90 -39.70 -37.50 -35.30 -33.10 -30.90 -28.70 -26.50 -24.30 -22.10 -19.90 -17.70 -15.50 deg
+
+s:Ge/Col3/Type = "TsBox"
+s:Ge/Col3/Parent = "World"
+s:Ge/Col3/Material = "G4_CADMIUM_TELLURIDE"
+d:Ge/Col3/HLX = 11. mm
+d:Ge/Col3/HLY = 80. mm
+d:Ge/Col3/HLZ = 2.5 mm
+d:Ge/Col3/TransX = 109.02 mm
+d:Ge/Col3/TransZ = 95.61 mm
+s:Ge/Col3/Color = "tc_czt"
+d:Ge/Col3/RotY = Tf/Col3R/Value deg
+s:Tf/Col3R/Function = "Step"
+dv:Tf/Col3R/Times = 21 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 s
+dv:Tf/Col3R/Values = 21 -70.75 -68.55 -66.35 -64.15 -61.95 -59.75 -57.55 -55.35 -53.15 -50.95 -48.75 -46.55 -44.35 -42.15 -39.95 -37.75 -35.55 -33.35 -31.15 -28.95 -26.75 deg
+
+s:Ge/Col4/Type = "TsBox"
+s:Ge/Col4/Parent = "World"
+s:Ge/Col4/Material = "G4_CADMIUM_TELLURIDE"
+d:Ge/Col4/HLX = 11. mm
+d:Ge/Col4/HLY = 80. mm
+d:Ge/Col4/HLZ = 2.5 mm
+d:Ge/Col4/TransX = 125.57 mm
+d:Ge/Col4/TransZ = 72.50 mm
+s:Ge/Col4/Color = "tc_czt"
+d:Ge/Col4/RotY = Tf/Col4R/Value deg
+s:Tf/Col4R/Function = "Step"
+dv:Tf/Col4R/Times = 21 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 s
+dv:Tf/Col4R/Values = 21 -82.00 -79.80 -77.60 -75.40 -73.20 -71.00 -68.80 -66.60 -64.40 -62.20 -60.00 -57.80 -55.60 -53.40 -51.20 -49.00 -46.80 -44.60 -42.40 -40.20 -38.00 deg
+
+s:Ge/Col5/Type = "TsBox"
+s:Ge/Col5/Parent = "World"
+s:Ge/Col5/Material = "G4_CADMIUM_TELLURIDE"
+d:Ge/Col5/HLX = 11. mm
+d:Ge/Col5/HLY = 80. mm
+d:Ge/Col5/HLZ = 2.5 mm
+d:Ge/Col5/TransX = 137.30 mm
+d:Ge/Col5/TransZ = 46.61 mm
+s:Ge/Col5/Color = "tc_czt"
+d:Ge/Col5/RotY = Tf/Col5R/Value deg
+s:Tf/Col5R/Function = "Step"
+dv:Tf/Col5R/Times = 21 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 s
+dv:Tf/Col5R/Values = 21 -93.25 -91.05 -88.85 -86.65 -84.45 -82.25 -80.05 -77.85 -75.65 -73.45 -71.25 -69.05 -66.85 -64.65 -62.45 -60.25 -58.05 -55.85 -53.65 -51.45 -49.25 deg
+
+s:Ge/Col6/Type = "TsBox"
+s:Ge/Col6/Parent = "World"
+s:Ge/Col6/Material = "G4_CADMIUM_TELLURIDE"
+d:Ge/Col6/HLX = 11. mm
+d:Ge/Col6/HLY = 80. mm
+d:Ge/Col6/HLZ = 2.5 mm
+d:Ge/Col6/TransX = 143.76 mm
+d:Ge/Col6/TransZ = 18.93 mm
+s:Ge/Col6/Color = "tc_czt"
+d:Ge/Col6/RotY = Tf/Col6R/Value deg
+s:Tf/Col6R/Function = "Step"
+dv:Tf/Col6R/Times = 21 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 s
+dv:Tf/Col6R/Values = 21 -104.50 -102.30 -100.10 -97.90 -95.70 -93.50 -91.30 -89.10 -86.90 -84.70 -82.50 -80.30 -78.10 -75.90 -73.70 -71.50 -69.30 -67.10 -64.90 -62.70 -60.50 deg
+
+s:Ge/Col7/Type = "TsBox"
+s:Ge/Col7/Parent = "World"
+s:Ge/Col7/Material = "G4_CADMIUM_TELLURIDE"
+d:Ge/Col7/HLX = 11. mm
+d:Ge/Col7/HLY = 80. mm
+d:Ge/Col7/HLZ = 2.5 mm
+d:Ge/Col7/TransX = 144.69 mm
+d:Ge/Col7/TransZ = -9.48 mm
+s:Ge/Col7/Color = "tc_czt"
+d:Ge/Col7/RotY = Tf/Col7R/Value deg
+s:Tf/Col7R/Function = "Step"
+dv:Tf/Col7R/Times = 21 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 s
+dv:Tf/Col7R/Values = 21 -115.75 -113.55 -111.35 -109.15 -106.95 -104.75 -102.55 -100.35 -98.15 -95.95 -93.75 -91.55 -89.35 -87.15 -84.95 -82.75 -80.55 -78.35 -76.15 -73.95 -71.75 deg
+
+s:Ge/Col8/Type = "TsBox"
+s:Ge/Col8/Parent = "World"
+s:Ge/Col8/Material = "G4_CADMIUM_TELLURIDE"
+d:Ge/Col8/HLX = 11. mm
+d:Ge/Col8/HLY = 80. mm
+d:Ge/Col8/HLZ = 2.5 mm
+d:Ge/Col8/TransX = 140.06 mm
+d:Ge/Col8/TransZ = -37.53 mm
+s:Ge/Col8/Color = "tc_czt"
+d:Ge/Col8/RotY = Tf/Col8R/Value deg
+s:Tf/Col8R/Function = "Step"
+dv:Tf/Col8R/Times = 21 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 s
+dv:Tf/Col8R/Values = 21 -127.00 -124.80 -122.60 -120.40 -118.20 -116.00 -113.80 -111.60 -109.40 -107.20 -105.00 -102.80 -100.60 -98.40 -96.20 -94.00 -91.80 -89.60 -87.40 -85.20 -83.00 deg
+
+s:Gr/View/Type = "OpenGL"
+i:Gr/View/WindowSizeX = 1100
+i:Gr/View/WindowSizeY = 950
+d:Gr/View/Theta = 62 deg
+d:Gr/View/Phi = 26 deg
+u:Gr/View/Zoom = 1.1
+b:Ts/UseQt = "True"
+b:Ts/PauseBeforeQuit = "True"

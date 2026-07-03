@@ -1,0 +1,91 @@
+# Acquisition example: multi-view SPECT orbit via OpenTOPAS time features.
+#
+# RECOMMENDED: this is full-MC, which is count-starved through a collimator. For a real acquisition,
+# use forced detection (see docs/variance_reduction.md and examples/vr/forced_detection.txt), e.g. via
+# tools/make_dynamic_acquisition.py --vr, so each projection runs in seconds instead of needing huge
+# history counts.
+#
+# A SPECT acquisition = N projections (views) over a gantry orbit, each for a dwell time. Here the
+# OpenTOPAS time feature drives the gantry angle: NumberOfSequentialTimes = N runs (views), and a linear
+# time function rotates the DETECTOR HEAD (a Group holding the collimator + crystal) about the patient
+# long axis (z). Histories per view = the phantom source counts per run (proportional to dwell x activity).
+# Run from this example's folder: topas spect_acquisition.txt
+#
+# NOTE: rotate the DETECTOR, not the phantom. Rotating a phantom that contains volumetric sources with
+# a time feature crashes (the volumetric sampler cannot follow a moving parent). The head has no
+# source, so it rotates safely while the phantom stays fixed.
+#
+# ACTIVITY DECAY across the acquisition (short-lived isotopes; Ac-225 chain equilibrium):
+#   - Native: emit the parent ION (VolumetricParticle = "GenericIon", IonZ/IonA) with radioactive
+#     decay enabled (add "g4radioactivedecay" to Ph/Default/Modules); activity decays over the
+#     timeline and daughters build to equilibrium. Scale histories/view by exp(-ln2 * t_view / T_half)
+#     for a decaying gamma source.
+#   - Native decay chain: use the bundled SpectDecaySource (via make_dynamic_acquisition.py --decay),
+#     which emits the parent ion and lets g4radioactivedecay produce the whole chain.
+
+IncludeFile = ../../phantoms/scenarios/lu177_psma.txt     # fixed phantom: Ge/Torso + organs/lesions + sources
+
+i:Ts/NumberOfThreads = 4
+
+# --- Acquisition timeline: 6 views over 5 min, 30 s/view, orbit 0 -> 180 deg ---
+i:Tf/NumberOfSequentialTimes = 6
+d:Tf/TimelineStart = 0. s
+d:Tf/TimelineEnd   = 300. s
+s:Tf/Orbit/Function   = "Linear deg"
+d:Tf/Orbit/StartValue = 0. deg
+d:Tf/Orbit/Rate       = 0.6 deg/s          # 180 deg / 300 s
+
+sv:Ma/Lead/Components = 1 "Lead"
+uv:Ma/Lead/Fractions  = 1 1.0
+d:Ma/Lead/Density     = 11.35 g/cm3
+sv:Ma/NaI/Components = 2 "Sodium" "Iodine"
+uv:Ma/NaI/Fractions  = 2 0.1534 0.8466
+d:Ma/NaI/Density     = 3.67 g/cm3
+
+sv:Ph/Default/Modules = 1 "g4em-penelope"
+b:Ph/Default/Fluorescence = "True"
+d:Ph/Default/CutForGamma    = 0.5 mm
+d:Ph/Default/CutForElectron = 0.5 mm
+
+d:Ge/World/HLX = 500. mm
+d:Ge/World/HLY = 500. mm
+d:Ge/World/HLZ = 500. mm
+s:Ge/World/Material = "Vacuum"
+
+# --- Rotating detector head (Group) orbiting the patient long axis (z) ---
+s:Ge/Head/Type   = "Group"
+s:Ge/Head/Parent = "World"
+d:Ge/Head/RotZ   = Tf/Orbit/Value deg       # the gantry angle, driven by the time feature
+
+# Symbia ME collimator + NaI, offset along +y within the head, facing the patient (RotX=90 aims the
+# hole axis along -y toward the origin). The head's rotation carries them around the patient.
+s:Ge/Collim/Type             = "TsParallelHoleCollimator"
+s:Ge/Collim/Parent           = "Head"
+s:Ge/Collim/Material         = "Lead"
+d:Ge/Collim/HoleDiameter     = 2.94 mm
+d:Ge/Collim/SeptalThickness  = 1.14 mm
+d:Ge/Collim/CollimatorLength = 40.64 mm
+i:Ge/Collim/NHolesX = 80
+i:Ge/Collim/NHolesY = 80
+s:Ge/Collim/Hole/Material    = "Vacuum"
+d:Ge/Collim/TransY = 300. mm
+d:Ge/Collim/RotX   = -90. deg
+
+s:Ge/Crystal/Type     = "TsBox"
+s:Ge/Crystal/Parent   = "Head"
+s:Ge/Crystal/Material = "NaI"
+d:Ge/Crystal/HLX = 200. mm
+d:Ge/Crystal/HLY = 4.75 mm
+d:Ge/Crystal/HLZ = 200. mm
+d:Ge/Crystal/TransY = 325.5 mm
+i:Ge/Crystal/XBins = 128
+i:Ge/Crystal/ZBins = 128
+
+# One projection image per view (the time feature triggers a new run per view)
+s:Sc/Proj/Quantity   = "EnergyDeposit"
+s:Sc/Proj/Component  = "Crystal"
+s:Sc/Proj/OutputType = "CSV"
+s:Sc/Proj/OutputFile = "spect_acquisition"
+s:Sc/Proj/IfOutputFileAlreadyExists = "Overwrite"
+b:Sc/Proj/OutputToConsole = "False"
+b:Ts/PauseBeforeQuit = "False"

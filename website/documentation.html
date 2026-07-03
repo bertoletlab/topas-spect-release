@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Documentation, OpenTOPAS-SPECT</title>
+<meta name="description" content="The OpenTOPAS-SPECT user guide.">
+<link rel="icon" href="assets/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+<link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+<header class="site">
+  <div class="wrap navbar">
+    <a class="brand" href="index.html"><img class="brand-icon" src="assets/icon.svg" alt=""><span class="brand-name">Open<b>TOPAS</b><span class="accent">-SPECT</span></span></a>
+    <nav class="links">
+      <a href="index.html#features">Features</a>
+      <a href="install.html">Install</a>
+      <a href="documentation.html">Documentation</a>
+      <a href="citation.html">Citation</a>
+      <a class="ext" href="https://github.com/bertoletlab/topas-spect-release">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap content">
+  <h1>Documentation</h1>
+  <p>The full user manual, written as a guide, from your first simulation through every feature, is hosted
+    on Read the Docs and lives in the repository under <code>docs/</code>.</p>
+  <div class="cta" style="margin:18px 0 8px;">
+    <a class="btn btn-primary" href="https://topas-spect-release.readthedocs.io/">Read the Docs</a>
+    <a class="btn btn-ghost" href="https://github.com/bertoletlab/topas-spect-release/tree/main/docs">Browse on GitHub</a>
+  </div>
+
+  <h2>Getting started</h2>
+  <ul>
+    <li><a href="install.html">Installation</a>, build the extension and confirm it works.</li>
+    <li><strong>Quickstart</strong>, run your first SPECT simulation and read the output.</li>
+    <li><strong>How a deck is put together</strong>, the five ingredients, the detector chain, coordinate
+      conventions.</li>
+  </ul>
+
+  <h2>User guide</h2>
+  <table>
+    <tr><th>Chapter</th><th>What it covers</th></tr>
+    <tr><td>Camera and collimator systems</td><td>Ready-made Symbia and GE camera presets; choosing a collimator for your isotope.</td></tr>
+    <tr><td>Designing detectors and collimators</td><td>Parallel-hole, converging, pinhole, slit-slat, pixelated detectors, and CAD import.</td></tr>
+    <tr><td>Patient-like phantoms</td><td>Composable analytic phantoms with sourced uptake; the XCAT path.</td></tr>
+    <tr><td>Dynamic acquisitions</td><td>Prescribe a study in SPECT-console terms with native isotope decay.</td></tr>
+    <tr><td>CT-driven detector motion</td><td>Collision-safe, contour-hugging motion from a patient CT.</td></tr>
+    <tr><td>Variance reduction</td><td>Forced detection and native OpenTOPAS VR, with the validation workflow.</td></tr>
+    <tr><td>Python tools</td><td>The acquisition and ring-motion helper scripts.</td></tr>
+    <tr><td>Validation</td><td>Energy response, resolution, sensitivity, phantom consistency, and the end-to-end control experiment.</td></tr>
+  </table>
+
+  <div class="note">The documentation builds with MkDocs (<code>mkdocs build</code>) or on Read the Docs via
+    the included <code>.readthedocs.yaml</code>.</div>
+</main>
+
+<footer class="site">
+  <div class="wrap row">
+    <span>&copy; 2026 Bertolet Lab &middot; MIT License</span>
+    <span><a href="https://github.com/bertoletlab/topas-spect-release">github.com/bertoletlab/topas-spect-release</a></span>
+  </div>
+</footer>
+</body>
+</html>

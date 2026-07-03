@@ -1,0 +1,21 @@
+# General pixelated NaI(Tl) detector (native OpenTOPAS TsPixelatedBox).
+# A standalone, fully parametric detector fragment. Include it in a custom deck (with your own
+# collimator) and attach a scorer with Sc/<name>/Component = "Det". Tune pixel size/pitch/count and
+# thickness freely. The frame material is Vacuum; the pixels are NaI.
+# The deck adds World, physics, source, scorer, and the Z placement (d:Ge/Det/TransZ).
+
+sv:Ma/NaI/Components = 2 "Sodium" "Iodine"
+uv:Ma/NaI/Fractions  = 2 0.1534 0.8466
+d:Ma/NaI/Density     = 3.67 g/cm3
+
+s:Ge/Det/Type = "TsPixelatedBox"
+s:Ge/Det/Parent = "World"
+s:Ge/Det/Material = "Vacuum"
+s:Ge/Det/Pixel/Material = "NaI"
+i:Ge/Det/NumberOfPixelsX = 64
+i:Ge/Det/NumberOfPixelsY = 64
+d:Ge/Det/PixelSizeX = 3.3 mm
+d:Ge/Det/PixelSizeY = 3.3 mm
+d:Ge/Det/PixelSizeZ = 9.5 mm      # 3/8" NaI
+d:Ge/Det/PitchX = 3.3 mm
+d:Ge/Det/PitchY = 3.3 mm

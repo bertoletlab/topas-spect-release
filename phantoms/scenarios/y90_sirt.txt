@@ -1,0 +1,87 @@
+# Scenario: Y-90 radioembolization (SIRT) liver phantom.
+# Y-90 microspheres lodge in the liver: a perfused normal-liver background + a hotter tumor
+# (tumor-to-normal ratio) + a small lung shunt; non-perfused liver is cold. Y-90 is a PURE BETA
+# emitter -> the imaging signal is BREMSSTRAHLUNG produced as the betas slow in tissue (broad
+# continuous spectrum, no photopeak; image with a ~90-110 keV window + a medium/high-energy
+# collimator). Provenance: research/knowledge/rpt-biodistribution/.
+#
+# Sourced parameters: tumor-to-normal-liver ratio ~3 realized / 7-16 microsphere-count (Young 2022,
+# Kennedy 2004) -> here T:N = 4; lung shunt ~5% (Kao 2013). Brems SPECT underestimates tumor dose
+# ~50% vs Y-90 PET (Brosch 2020).
+# EMISSION: Y-90 beta approximated as electrons at the mean beta energy (0.9337 MeV; true spectrum
+# endpoint 2.28 MeV). Bremsstrahlung is produced as they slow in tissue -> LOW YIELD, so use variance
+# reduction (docs/variance_reduction.md) + many histories. Higher fidelity: emit the Y-90 ion
+# (GenericIon Z=39,A=90) with radioactive decay enabled. HISTORIES set the relative activity.
+
+# ====================== Body (attenuator) ======================
+s:Ge/Torso/Type = "G4EllipticalTube"
+s:Ge/Torso/Parent = "World"
+s:Ge/Torso/Material = "G4_TISSUE_SOFT_ICRP"
+d:Ge/Torso/HLX = 150. mm
+d:Ge/Torso/HLY = 100. mm
+d:Ge/Torso/HLZ = 200. mm
+
+# ====================== Liver + tumor + lungs ======================
+# Perfused normal liver (background T:N = 1)
+s:Ge/Liver/Type = "G4Ellipsoid"
+s:Ge/Liver/Parent = "Torso"
+s:Ge/Liver/Material = "G4_TISSUE_SOFT_ICRP"
+d:Ge/Liver/HLX = 80. mm
+d:Ge/Liver/HLY = 50. mm
+d:Ge/Liver/HLZ = 45. mm
+d:Ge/Liver/TransX = 40. mm
+d:Ge/Liver/TransY = 10. mm
+d:Ge/Liver/TransZ = 60. mm
+# Tumor inside the liver (T:N = 4)
+s:Ge/Tumor/Type = "TsSphere"
+s:Ge/Tumor/Parent = "Liver"
+s:Ge/Tumor/Material = "G4_TISSUE_SOFT_ICRP"
+d:Ge/Tumor/RMax = 20. mm
+d:Ge/Tumor/TransX = 20. mm
+d:Ge/Tumor/TransZ = 10. mm
+# Lungs (shunt ~5% of liver activity)
+s:Ge/LungL/Type = "G4Ellipsoid"
+s:Ge/LungL/Parent = "Torso"
+s:Ge/LungL/Material = "G4_LUNG_ICRP"
+d:Ge/LungL/HLX = 45. mm
+d:Ge/LungL/HLY = 40. mm
+d:Ge/LungL/HLZ = 45. mm
+d:Ge/LungL/TransX = -60. mm
+d:Ge/LungL/TransZ = 155. mm
+s:Ge/LungR/Type = "G4Ellipsoid"
+s:Ge/LungR/Parent = "Torso"
+s:Ge/LungR/Material = "G4_LUNG_ICRP"
+d:Ge/LungR/HLX = 45. mm
+d:Ge/LungR/HLY = 40. mm
+d:Ge/LungR/HLZ = 45. mm
+d:Ge/LungR/TransX = 60. mm
+d:Ge/LungR/TransZ = 155. mm
+
+# ====================== Activity (Y-90 ion; relative per compartment) ======================
+# Perfused liver background (ratio 1)
+s:So/LiverSrc/Type = "Volumetric"
+s:So/LiverSrc/Component = "Liver"
+s:So/LiverSrc/VolumetricParticle = "e-"
+d:So/LiverSrc/VolumetricEnergy = 0.9337 MeV
+s:So/LiverSrc/ActiveMaterial = "G4_TISSUE_SOFT_ICRP"
+i:So/LiverSrc/NumberOfHistoriesInRun = 100000
+# Tumor (T:N = 4; smaller volume)
+s:So/TumorSrc/Type = "Volumetric"
+s:So/TumorSrc/Component = "Tumor"
+s:So/TumorSrc/VolumetricParticle = "e-"
+d:So/TumorSrc/VolumetricEnergy = 0.9337 MeV
+s:So/TumorSrc/ActiveMaterial = "G4_TISSUE_SOFT_ICRP"
+i:So/TumorSrc/NumberOfHistoriesInRun = 17000
+# Lung shunt (~5% of liver, split L/R)
+s:So/LungLSrc/Type = "Volumetric"
+s:So/LungLSrc/Component = "LungL"
+s:So/LungLSrc/VolumetricParticle = "e-"
+d:So/LungLSrc/VolumetricEnergy = 0.9337 MeV
+s:So/LungLSrc/ActiveMaterial = "G4_LUNG_ICRP"
+i:So/LungLSrc/NumberOfHistoriesInRun = 2500
+s:So/LungRSrc/Type = "Volumetric"
+s:So/LungRSrc/Component = "LungR"
+s:So/LungRSrc/VolumetricParticle = "e-"
+d:So/LungRSrc/VolumetricEnergy = 0.9337 MeV
+s:So/LungRSrc/ActiveMaterial = "G4_LUNG_ICRP"
+i:So/LungRSrc/NumberOfHistoriesInRun = 2500

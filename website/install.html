@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Install, OpenTOPAS-SPECT</title>
+<meta name="description" content="Build OpenTOPAS-SPECT as an OpenTOPAS extension.">
+<link rel="icon" href="assets/favicon.ico">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png">
+<link rel="stylesheet" href="assets/styles.css">
+</head>
+<body>
+<header class="site">
+  <div class="wrap navbar">
+    <a class="brand" href="index.html"><img class="brand-icon" src="assets/icon.svg" alt=""><span class="brand-name">Open<b>TOPAS</b><span class="accent">-SPECT</span></span></a>
+    <nav class="links">
+      <a href="index.html#features">Features</a>
+      <a href="install.html">Install</a>
+      <a href="documentation.html">Documentation</a>
+      <a href="citation.html">Citation</a>
+      <a class="ext" href="https://github.com/bertoletlab/topas-spect-release">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap content">
+  <h1>Install &amp; build</h1>
+  <p>OpenTOPAS-SPECT is a set of OpenTOPAS <em>extensions</em>: self-contained C++ classes that OpenTOPAS compiles
+    into its own binary. You install it by pointing an OpenTOPAS build at the source directory. There is nothing
+    to install separately, and the OpenTOPAS core is never modified.</p>
+
+  <h2>Prerequisites</h2>
+  <ul>
+    <li><strong>OpenTOPAS</strong> 4.2.p2 (the version this package is built and tested against).</li>
+    <li><strong>Geant4</strong> 11.2.2 (geant4-11-02-patch-02) with its data files, built as OpenTOPAS requires.</li>
+    <li><strong>CMake</strong> &ge; 3.16 and a C++17 compiler.</li>
+    <li>For the Python helper scripts only: Python 3.9+ (<code>pip install -r requirements.txt</code>). The
+      simulation itself needs none of these.</li>
+  </ul>
+
+  <h2>Get the source</h2>
+  <pre><code>git clone https://github.com/bertoletlab/topas-spect-release.git</code></pre>
+
+  <h2>Build</h2>
+  <p>Point a fresh OpenTOPAS build at the extension directory with <code>TOPAS_EXTENSIONS_DIR</code>. OpenTOPAS
+    compiles every <code>.cc</code> it finds and registers the new components and scorers automatically.</p>
+  <pre><code>cmake -S /path/to/OpenTOPAS \
+      -B /path/to/OpenTOPAS-build \
+      -DTOPAS_EXTENSIONS_DIR="/path/to/topas-spect" \
+      -DGeant4_DIR=/path/to/geant4/lib/cmake/Geant4 \
+      -DCMAKE_BUILD_TYPE=Release
+
+cmake --build /path/to/OpenTOPAS-build --parallel 8</code></pre>
+
+  <div class="note">Use a <strong>fresh build directory per extension set</strong>. Reusing a directory
+    configured for a different <code>TOPAS_EXTENSIONS_DIR</code> can carry stale paths and cause confusing
+    link errors.</div>
+
+  <h2>Verify</h2>
+  <p>Run a shipped example from its own folder. OpenTOPAS resolves <code>IncludeFile</code> paths relative to
+    the directory you launch from, and each example's includes point to <code>../../systems</code>,
+    <code>../../phantoms</code>:</p>
+  <pre><code>cd topas-spect/examples/system
+/path/to/OpenTOPAS-build/topas symbia_lehr_sensitivity.txt</code></pre>
+  <p>You should see the geometry build with no overlap warnings and a sensitivity in counts per decay. To
+    check every shipped example at once:</p>
+  <pre><code>TOPAS_BIN=/path/to/OpenTOPAS-build/topas bash tests/smoke_decks.sh</code></pre>
+
+  <p>Full details, including combining with other extensions, are in the
+    <a href="documentation.html">documentation</a>.</p>
+</main>
+
+<footer class="site">
+  <div class="wrap row">
+    <span>&copy; 2026 Bertolet Lab &middot; MIT License</span>
+    <span><a href="https://github.com/bertoletlab/topas-spect-release">github.com/bertoletlab/topas-spect-release</a></span>
+  </div>
+</footer>
+</body>
+</html>

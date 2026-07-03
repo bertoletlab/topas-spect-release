@@ -1,0 +1,7 @@
+# Python dependencies for the topas-spect tools and tests (the OpenTOPAS extension itself is C++).
+numpy<2
+scipy
+pydicom>=2.3
+# optional, only for reading JPEG-compressed clinical DICOM (CT contour extraction):
+pylibjpeg
+pylibjpeg-libjpeg

@@ -1,0 +1,55 @@
+# Image the resolution_projection QA phantom end-on through a Siemens Symbia LEHR head (Tc-99m 140.5 keV), one planar
+# projection. Rotate the head for a tomographic series (see examples/acquisition/ and
+# tools/make_dynamic_acquisition.py). Geometry provenance: research/knowledge/spect-qa-phantom-geometry/.
+# The collimator+detector are inlined (not an IncludeFile) so there is a single include chain.
+#
+# Run from this example's folder:  topas resolution_projection.txt
+IncludeFile = ../../phantoms/qa/resolution_sources.txt
+
+i:Ts/NumberOfThreads = 4
+sv:Ph/Default/Modules = 1 "g4em-penelope"
+b:Ph/Default/Fluorescence = "True"
+d:Ph/Default/CutForGamma    = 0.5 mm
+d:Ph/Default/CutForElectron = 0.5 mm
+
+d:Ge/World/HLX = 200 mm
+d:Ge/World/HLY = 120 mm
+d:Ge/World/HLZ = 250 mm
+s:Ge/World/Material = "Vacuum"
+
+# --- Siemens Symbia LEHR head (1.11 / 0.16 / 24.05 mm, NaI 9.5 mm), below the phantom, bore along +z ---
+sv:Ma/Lead/Components = 1 "Lead"
+uv:Ma/Lead/Fractions  = 1 1.0
+d:Ma/Lead/Density     = 11.35 g/cm3
+sv:Ma/NaI/Components = 2 "Sodium" "Iodine"
+uv:Ma/NaI/Fractions  = 2 0.1534 0.8466
+d:Ma/NaI/Density     = 3.67 g/cm3
+
+s:Ge/Collim/Type             = "TsParallelHoleCollimator"
+s:Ge/Collim/Parent           = "World"
+s:Ge/Collim/Material         = "Lead"
+d:Ge/Collim/HoleDiameter     = 1.11 mm
+d:Ge/Collim/SeptalThickness  = 0.16 mm
+d:Ge/Collim/CollimatorLength = 24.05 mm
+s:Ge/Collim/Hole/Material    = "Vacuum"
+i:Ge/Collim/NHolesX = 135
+i:Ge/Collim/NHolesY = 55
+d:Ge/Collim/TransZ  = -180. mm
+
+s:Ge/Crystal/Type     = "TsBox"
+s:Ge/Crystal/Parent   = "World"
+s:Ge/Crystal/Material = "NaI"
+d:Ge/Crystal/HLZ = 4.75 mm
+d:Ge/Crystal/HLX = 100 mm
+d:Ge/Crystal/HLY = 32 mm
+d:Ge/Crystal/TransZ = -205. mm
+i:Ge/Crystal/XBins = 128
+i:Ge/Crystal/YBins = 128
+i:Ge/Crystal/ZBins = 1
+
+s:Sc/Proj/Quantity   = "EnergyDeposit"
+s:Sc/Proj/Component  = "Crystal"
+s:Sc/Proj/OutputType = "CSV"
+s:Sc/Proj/OutputFile = "resolution_projection"
+s:Sc/Proj/IfOutputFileAlreadyExists = "Overwrite"
+b:Sc/Proj/OutputToConsole = "False"

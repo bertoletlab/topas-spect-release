@@ -1,0 +1,22 @@
+# General pixelated CZT detector (native OpenTOPAS TsPixelatedBox).
+# A standalone, fully parametric detector fragment. Include it in a custom deck (with your own
+# collimator) and attach a scorer with Sc/<name>/Component = "Det". Tune pixel size/pitch/count and
+# thickness freely. The frame material is Vacuum; the pixels are CZT (2.46 mm pitch, 7.25 mm thick,
+# matching current CZT ring systems).
+# The deck adds World, physics, source, scorer, and the Z placement (d:Ge/Det/TransZ).
+
+sv:Ma/CZT/Components = 3 "Cadmium" "Zinc" "Tellurium"
+uv:Ma/CZT/Fractions  = 3 0.4632 0.0300 0.5068
+d:Ma/CZT/Density     = 5.78 g/cm3
+
+s:Ge/Det/Type = "TsPixelatedBox"
+s:Ge/Det/Parent = "World"
+s:Ge/Det/Material = "Vacuum"
+s:Ge/Det/Pixel/Material = "CZT"
+i:Ge/Det/NumberOfPixelsX = 96
+i:Ge/Det/NumberOfPixelsY = 96
+d:Ge/Det/PixelSizeX = 2.46 mm
+d:Ge/Det/PixelSizeY = 2.46 mm
+d:Ge/Det/PixelSizeZ = 7.25 mm
+d:Ge/Det/PitchX = 2.46 mm
+d:Ge/Det/PitchY = 2.46 mm

@@ -1,0 +1,62 @@
+# Variance reduction example: forced detection (fast projection).
+# Replaces the physical collimator + crystal (which detect only ~1 in 5000 photons) with a thin
+# forced-detection surface + the TsForcedDetectionProjection scorer: every forward gamma crossing the
+# surface is analytically projected through the collimator (Metz-Frey transmission) to a weighted
+# detector pixel. No collimator/crystal transport -> orders of magnitude faster.
+#
+# The surface's local +z must point toward the (virtual) detector. Sum the Weight column per pixel to
+# form the projection; sum all weights / histories is the (model) sensitivity.
+#
+# CALIBRATION CAVEAT: the built-in analytic transmission is UNCALIBRATED (geometric only, penetration
+# off, uses L not L_eff), so its ABSOLUTE sensitivity differs from full-MC (here ~1.3e-5 vs the
+# full-MC/measured 9.1e-5 for Symbia LEHR). The projection SHAPE and relative contrast are correct;
+# calibrate the absolute scale (HoleFraction / a normalization, or IncludeSeptalPenetration + L_eff)
+# against a full-MC or measured reference for your collimator before using absolute counts.
+# Run from this example's folder: topas forced_detection.txt
+
+i:Ts/NumberOfThreads = 4
+sv:Ph/Default/Modules = 1 "g4em-penelope"
+
+d:Ge/World/HLX = 300. mm
+d:Ge/World/HLY = 300. mm
+d:Ge/World/HLZ = 300. mm
+s:Ge/World/Material = "Vacuum"
+
+# Thin forced-detection surface where the collimator front would be (local +z toward the detector)
+s:Ge/FDSurface/Type = "TsBox"
+s:Ge/FDSurface/Parent = "World"
+s:Ge/FDSurface/Material = "Vacuum"
+d:Ge/FDSurface/HLX = 150. mm
+d:Ge/FDSurface/HLY = 150. mm
+d:Ge/FDSurface/HLZ = 0.05 mm
+d:Ge/FDSurface/TransZ = 0. mm
+
+s:Ge/Src/Type = "TsBox"
+s:Ge/Src/Parent = "World"
+s:Ge/Src/Material = "Vacuum"
+d:Ge/Src/HLX = 0.01 mm
+d:Ge/Src/HLY = 0.01 mm
+d:Ge/Src/HLZ = 0.01 mm
+d:Ge/Src/TransZ = -100. mm
+s:So/Beam/Type = "Isotropic"
+s:So/Beam/Component = "Src"
+s:So/Beam/BeamParticle = "gamma"
+d:So/Beam/BeamEnergy = 140.5 keV
+i:So/Beam/NumberOfHistoriesInRun = 2000000
+
+# Forced-detection projection scorer (Symbia LEHR collimator model; edit for any collimator/detector)
+s:Sc/FD/Quantity = "ForcedDetectionProjection"
+s:Sc/FD/Component = "FDSurface"
+d:Sc/FD/HoleDiameter = 1.11 mm
+d:Sc/FD/SeptalThickness = 0.16 mm
+d:Sc/FD/CollimatorLength = 24.05 mm
+d:Sc/FD/PixelSizeX = 4.0 mm
+d:Sc/FD/PixelSizeY = 4.0 mm
+i:Sc/FD/NPixelsX = 64
+i:Sc/FD/NPixelsY = 64
+d:Sc/FD/EnergyWindowLow  = 126.5 keV
+d:Sc/FD/EnergyWindowHigh = 154.6 keV
+s:Sc/FD/OutputType = "ASCII"
+s:Sc/FD/OutputFile = "forced_detection"
+s:Sc/FD/IfOutputFileAlreadyExists = "Overwrite"
+b:Ts/PauseBeforeQuit = "False"

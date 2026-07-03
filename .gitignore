@@ -1,0 +1,11 @@
+# TOPAS run outputs
+*.phsp
+*.header
+*.csv
+*.root
+*.out
+*.log
+# build artifacts
+build/
+*.o
+*.a

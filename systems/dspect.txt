@@ -1,0 +1,39 @@
+# Spectrum Dynamics D-SPECT (cardiac CZT), tungsten SQUARE-hole collimator + CZT crystal.
+# Geometry (square holes, hole = side/flat-to-flat): 2.26 / 0.2 / 21.7 mm; pitch 2.46 mm.
+# Source: Gambhir et al. 2009, J Nucl Med 50(4):635-643, DOI 10.2967/jnumed.108.060020.
+# Reliability B. Evidence: research/knowledge/spect-collimator-geometry/.
+#
+# IncludeFile fragment (see systems/README.md). Include exactly one preset per deck. The deck
+# adds World, physics, source, scorer, detector extents and the Z placements below.
+# Detector pixelation: 2.46 mm CZT pixels -> set Ge/Crystal/XBins,YBins to the pixel pitch.
+# Recommended placement (front collimator face at z = 0):
+#   d:Ge/Collim/TransZ  = 10.85 mm      # CollimatorLength / 2
+#   d:Ge/Crystal/TransZ = 24.45 mm      # 0.25 mm gap behind the collimator back face
+# Photopeak window (post-processing): Tc-99m 140.5 keV, 20% -> 126.5-154.6 keV.
+
+# --- Collimator septa: tungsten ---
+sv:Ma/Tungsten/Components = 1 "Tungsten"
+uv:Ma/Tungsten/Fractions  = 1 1.0
+d:Ma/Tungsten/Density     = 19.3 g/cm3
+
+# --- Crystal: cadmium zinc telluride (CZT) ---
+sv:Ma/CZT/Components = 3 "Cadmium" "Zinc" "Tellurium"
+uv:Ma/CZT/Fractions  = 3 0.4632 0.0300 0.5068
+d:Ma/CZT/Density     = 5.78 g/cm3
+
+# --- Collimator geometry (square holes on a square lattice) ---
+s:Ge/Collim/Type             = "TsParallelHoleCollimator"
+s:Ge/Collim/Parent           = "World"
+s:Ge/Collim/Material         = "Tungsten"
+d:Ge/Collim/HoleDiameter     = 2.26 mm
+d:Ge/Collim/SeptalThickness  = 0.2 mm
+d:Ge/Collim/CollimatorLength = 21.7 mm
+s:Ge/Collim/HoleShape        = "Square"
+s:Ge/Collim/Lattice          = "Square"
+s:Ge/Collim/Hole/Material    = "Vacuum"
+
+# --- Crystal geometry (CZT, 5 mm thick) ---
+s:Ge/Crystal/Type     = "TsBox"
+s:Ge/Crystal/Parent   = "World"
+s:Ge/Crystal/Material = "CZT"
+d:Ge/Crystal/HLZ      = 2.5 mm          # 5 mm thick

@@ -1,0 +1,20 @@
+# Verify the MkDocs documentation builds. Hosting is done by Read the Docs (see .readthedocs.yaml);
+# GitHub Pages serves the landing site instead (see pages.yml). This job is a build check only.
+name: Docs build check
+on:
+  push:
+    branches: [main]
+    paths: ["docs/**", "mkdocs.yml"]
+  pull_request:
+    paths: ["docs/**", "mkdocs.yml"]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install -r docs/requirements.txt
+      - run: mkdocs build --strict

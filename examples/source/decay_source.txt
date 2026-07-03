@@ -1,0 +1,56 @@
+# Bundled radioactive decay source (SpectDecaySource).
+#
+# Emits a parent radionuclide (177Lu here) uniformly in a source component. The deck enables
+# g4radioactivedecay, so Geant4 produces the whole decay chain from each emitted ion. Across a Tf
+# timeline the source scales the histories per time bin by the true activity decay, so a single deck
+# models a decaying source over an acquisition. No external extension is required.
+#
+# This example runs the timeline over 4 half-lives of 177Lu (T1/2 = 6.647 d) to make the decay
+# visible: the histories per run halve each bin (20000, 10000, 5000, 2500).
+
+i:Ts/NumberOfThreads = 0
+sv:Ph/Default/Modules = 2 "g4em-penelope" "g4radioactivedecay"
+
+d:Ge/World/HLX = 200. mm
+d:Ge/World/HLY = 200. mm
+d:Ge/World/HLZ = 200. mm
+s:Ge/World/Material = "Vacuum"
+
+sv:Ma/NaI/Components = 2 "Sodium" "Iodine"
+uv:Ma/NaI/Fractions  = 2 0.1534 0.8466
+d:Ma/NaI/Density     = 3.67 g/cm3
+
+# source organ (water sphere)
+s:Ge/Organ/Type   = "TsSphere"
+s:Ge/Organ/Parent = "World"
+s:Ge/Organ/Material = "G4_WATER"
+d:Ge/Organ/RMax   = 20. mm
+
+# a NaI detector slab to record the emitted gamma spectrum
+s:Ge/Det/Type   = "TsBox"
+s:Ge/Det/Parent = "World"
+s:Ge/Det/Material = "NaI"
+d:Ge/Det/HLX = 120. mm
+d:Ge/Det/HLY = 120. mm
+d:Ge/Det/HLZ = 5. mm
+d:Ge/Det/TransZ = 100. mm
+
+# the bundled decay source: parent ion, chain handled by g4radioactivedecay
+s:So/Src/Type         = "SpectDecaySource"
+s:So/Src/Component    = "Organ"
+s:So/Src/BeamParticle = "GenericIon(71,177)"       # 177Lu; use (89,225) for 225Ac, (39,90) for 90Y
+b:So/Src/CorrectByNumberOfHistories = "True"       # scale histories per Tf bin by the decay
+i:So/Src/NumberOfHistoriesInRun = 20000            # count at the first bin (relative activity)
+
+# acquisition timeline: 4 bins over 4 half-lives
+d:Tf/TimelineStart = 0. d
+d:Tf/TimelineEnd   = 26.588 d
+i:Tf/NumberOfSequentialTimes = 4
+
+# emitted-gamma spectrum in the detector (photopeaks at 208 and 113 keV for 177Lu)
+s:Sc/Spec/Quantity   = "EDepSpectrum"
+s:Sc/Spec/Component  = "Det"
+s:Sc/Spec/OutputType = "ASCII"
+s:Sc/Spec/OutputFile = "decay_source_177Lu"
+s:Sc/Spec/IfOutputFileAlreadyExists = "Overwrite"
+b:Ts/PauseBeforeQuit = "False"

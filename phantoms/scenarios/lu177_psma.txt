@@ -1,0 +1,167 @@
+# Scenario: Lu-177 PSMA (mCRPC) patient-like activity phantom.
+# Soft-tissue torso (attenuator) with physiological uptake in kidneys, salivary glands, liver,
+# spleen and spine marrow, plus a nodal metastasis and a bone metastasis. Emits the Lu-177 208 keV
+# line (add a second source at 113 keV per region for the dual-line spectrum).
+#
+# IncludeFile fragment: defines Ge/Torso + organs/lesions + one Volumetric source per hot region.
+# The deck adds World, physics, a collimator+detector (e.g. IncludeFile = systems/symbia_me.txt),
+# a scorer, and the phantom<->detector placement. Include exactly one collimator preset alongside.
+#
+# ACTIVITY = relative to kidney = 1.0, from research/knowledge/rpt-biodistribution/ (Violet 2019,
+# Okamoto 2017, Delker 2016, Kabasakal 2017; instantaneous tumor:kidney anchor Hohberg 2023).
+# CAVEAT: these are cumulated-dose (Gy/GBq) ratios used as relative time-integrated activity; a
+# single 24 h SPECT image has lower tumor/salivary-to-kidney contrast (kidney washes out early,
+# tumor accumulates). Background muscle/blood uptake was NOT FOUND in the literature -> the torso is
+# a pure attenuator here (no background emission); add a low background source if you need one.
+# HISTORIES = round( BaseHistories(=50000) * conc_ratio * volume/kidneyVolume ). Edit freely.
+
+# ====================== Body (attenuator, no emission) ======================
+s:Ge/Torso/Type     = "G4EllipticalTube"
+s:Ge/Torso/Parent   = "World"
+s:Ge/Torso/Material = "G4_TISSUE_SOFT_ICRP"
+d:Ge/Torso/HLX = 150. mm
+d:Ge/Torso/HLY = 100. mm
+d:Ge/Torso/HLZ = 200. mm
+
+# ====================== Organs (physiological uptake) ======================
+# Kidneys (ratio 1.0; vol 8.5e4 mm^3 each -> 50000 histories each)
+s:Ge/KidneyL/Type = "G4Ellipsoid"
+s:Ge/KidneyL/Parent = "Torso"
+s:Ge/KidneyL/Material = "G4_TISSUE_SOFT_ICRP"
+d:Ge/KidneyL/HLX = 25. mm
+d:Ge/KidneyL/HLY = 18. mm
+d:Ge/KidneyL/HLZ = 45. mm
+d:Ge/KidneyL/TransX = -55. mm
+d:Ge/KidneyL/TransY = -40. mm
+d:Ge/KidneyL/TransZ = -10. mm
+s:Ge/KidneyR/Type = "G4Ellipsoid"
+s:Ge/KidneyR/Parent = "Torso"
+s:Ge/KidneyR/Material = "G4_TISSUE_SOFT_ICRP"
+d:Ge/KidneyR/HLX = 25. mm
+d:Ge/KidneyR/HLY = 18. mm
+d:Ge/KidneyR/HLZ = 45. mm
+d:Ge/KidneyR/TransX = 55. mm
+d:Ge/KidneyR/TransY = -40. mm
+d:Ge/KidneyR/TransZ = -10. mm
+# Liver (ratio 0.25; vol 7.9e5 -> 116700)
+s:Ge/Liver/Type = "G4Ellipsoid"
+s:Ge/Liver/Parent = "Torso"
+s:Ge/Liver/Material = "G4_TISSUE_SOFT_ICRP"
+d:Ge/Liver/HLX = 70. mm
+d:Ge/Liver/HLY = 45. mm
+d:Ge/Liver/HLZ = 60. mm
+d:Ge/Liver/TransX = 45. mm
+d:Ge/Liver/TransY = 10. mm
+d:Ge/Liver/TransZ = 80. mm
+# Spleen (ratio 0.20; vol 9.7e4 -> 11400)
+s:Ge/Spleen/Type = "G4Ellipsoid"
+s:Ge/Spleen/Parent = "Torso"
+s:Ge/Spleen/Material = "G4_TISSUE_SOFT_ICRP"
+d:Ge/Spleen/HLX = 30. mm
+d:Ge/Spleen/HLY = 22. mm
+d:Ge/Spleen/HLZ = 35. mm
+d:Ge/Spleen/TransX = -80. mm
+d:Ge/Spleen/TransY = 15. mm
+d:Ge/Spleen/TransZ = 80. mm
+# Salivary/parotid glands (ratio 1.5; vol 9.0e3 each -> 8000)
+s:Ge/SalivaryL/Type = "G4Ellipsoid"
+s:Ge/SalivaryL/Parent = "Torso"
+s:Ge/SalivaryL/Material = "G4_TISSUE_SOFT_ICRP"
+d:Ge/SalivaryL/HLX = 12. mm
+d:Ge/SalivaryL/HLY = 10. mm
+d:Ge/SalivaryL/HLZ = 18. mm
+d:Ge/SalivaryL/TransX = -40. mm
+d:Ge/SalivaryL/TransY = -20. mm
+d:Ge/SalivaryL/TransZ = 170. mm
+s:Ge/SalivaryR/Type = "G4Ellipsoid"
+s:Ge/SalivaryR/Parent = "Torso"
+s:Ge/SalivaryR/Material = "G4_TISSUE_SOFT_ICRP"
+d:Ge/SalivaryR/HLX = 12. mm
+d:Ge/SalivaryR/HLY = 10. mm
+d:Ge/SalivaryR/HLZ = 18. mm
+d:Ge/SalivaryR/TransX = 40. mm
+d:Ge/SalivaryR/TransY = -20. mm
+d:Ge/SalivaryR/TransZ = 170. mm
+# Spine / red marrow (ratio 0.28; cylinder vol 1.6e5 -> 26300)
+s:Ge/Spine/Type = "TsCylinder"
+s:Ge/Spine/Parent = "Torso"
+s:Ge/Spine/Material = "G4_BONE_CORTICAL_ICRP"
+d:Ge/Spine/RMax = 13. mm
+d:Ge/Spine/HL = 150. mm
+d:Ge/Spine/TransY = 80. mm
+
+# ====================== Lesions ======================
+# Nodal metastasis (ratio 10 cumulated; vol 7.2e3 -> 42700)
+s:Ge/NodalMet/Type = "TsSphere"
+s:Ge/NodalMet/Parent = "Torso"
+s:Ge/NodalMet/Material = "G4_TISSUE_SOFT_ICRP"
+d:Ge/NodalMet/RMax = 12. mm
+d:Ge/NodalMet/TransX = -30. mm
+d:Ge/NodalMet/TransY = -5. mm
+d:Ge/NodalMet/TransZ = -90. mm
+# Bone metastasis (ratio 13 cumulated; vol 4.2e3 -> 32100)
+# Vertebral metastasis: embedded IN the spine (child of Spine, on its axis at a lumbar level).
+# Nesting avoids a geometry overlap and lets the spine's marrow source exclude the lesion region.
+s:Ge/BoneMet/Type = "TsSphere"
+s:Ge/BoneMet/Parent = "Spine"
+s:Ge/BoneMet/Material = "G4_B-100_BONE"
+d:Ge/BoneMet/RMax = 10. mm
+d:Ge/BoneMet/TransX = 0. mm
+d:Ge/BoneMet/TransY = 0. mm
+d:Ge/BoneMet/TransZ = -40. mm
+
+# ====================== Activity (one Volumetric source per hot region) ======================
+s:So/KidneyLSrc/Type = "Volumetric"
+s:So/KidneyLSrc/Component = "KidneyL"
+s:So/KidneyLSrc/VolumetricParticle = "gamma"
+d:So/KidneyLSrc/VolumetricEnergy = 208. keV
+s:So/KidneyLSrc/ActiveMaterial = "G4_TISSUE_SOFT_ICRP"
+i:So/KidneyLSrc/NumberOfHistoriesInRun = 50000
+s:So/KidneyRSrc/Type = "Volumetric"
+s:So/KidneyRSrc/Component = "KidneyR"
+s:So/KidneyRSrc/VolumetricParticle = "gamma"
+d:So/KidneyRSrc/VolumetricEnergy = 208. keV
+s:So/KidneyRSrc/ActiveMaterial = "G4_TISSUE_SOFT_ICRP"
+i:So/KidneyRSrc/NumberOfHistoriesInRun = 50000
+s:So/LiverSrc/Type = "Volumetric"
+s:So/LiverSrc/Component = "Liver"
+s:So/LiverSrc/VolumetricParticle = "gamma"
+d:So/LiverSrc/VolumetricEnergy = 208. keV
+s:So/LiverSrc/ActiveMaterial = "G4_TISSUE_SOFT_ICRP"
+i:So/LiverSrc/NumberOfHistoriesInRun = 116700
+s:So/SpleenSrc/Type = "Volumetric"
+s:So/SpleenSrc/Component = "Spleen"
+s:So/SpleenSrc/VolumetricParticle = "gamma"
+d:So/SpleenSrc/VolumetricEnergy = 208. keV
+s:So/SpleenSrc/ActiveMaterial = "G4_TISSUE_SOFT_ICRP"
+i:So/SpleenSrc/NumberOfHistoriesInRun = 11400
+s:So/SalivaryLSrc/Type = "Volumetric"
+s:So/SalivaryLSrc/Component = "SalivaryL"
+s:So/SalivaryLSrc/VolumetricParticle = "gamma"
+d:So/SalivaryLSrc/VolumetricEnergy = 208. keV
+s:So/SalivaryLSrc/ActiveMaterial = "G4_TISSUE_SOFT_ICRP"
+i:So/SalivaryLSrc/NumberOfHistoriesInRun = 8000
+s:So/SalivaryRSrc/Type = "Volumetric"
+s:So/SalivaryRSrc/Component = "SalivaryR"
+s:So/SalivaryRSrc/VolumetricParticle = "gamma"
+d:So/SalivaryRSrc/VolumetricEnergy = 208. keV
+s:So/SalivaryRSrc/ActiveMaterial = "G4_TISSUE_SOFT_ICRP"
+i:So/SalivaryRSrc/NumberOfHistoriesInRun = 8000
+s:So/SpineSrc/Type = "Volumetric"
+s:So/SpineSrc/Component = "Spine"
+s:So/SpineSrc/VolumetricParticle = "gamma"
+d:So/SpineSrc/VolumetricEnergy = 208. keV
+s:So/SpineSrc/ActiveMaterial = "G4_BONE_CORTICAL_ICRP"
+i:So/SpineSrc/NumberOfHistoriesInRun = 26300
+s:So/NodalMetSrc/Type = "Volumetric"
+s:So/NodalMetSrc/Component = "NodalMet"
+s:So/NodalMetSrc/VolumetricParticle = "gamma"
+d:So/NodalMetSrc/VolumetricEnergy = 208. keV
+s:So/NodalMetSrc/ActiveMaterial = "G4_TISSUE_SOFT_ICRP"
+i:So/NodalMetSrc/NumberOfHistoriesInRun = 42700
+s:So/BoneMetSrc/Type = "Volumetric"
+s:So/BoneMetSrc/Component = "BoneMet"
+s:So/BoneMetSrc/VolumetricParticle = "gamma"
+d:So/BoneMetSrc/VolumetricEnergy = 208. keV
+s:So/BoneMetSrc/ActiveMaterial = "G4_B-100_BONE"
+i:So/BoneMetSrc/NumberOfHistoriesInRun = 32100

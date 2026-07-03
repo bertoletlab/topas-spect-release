@@ -1,0 +1,54 @@
+# Design example: import a CAD part (native OpenTOPAS TsCAD).
+# Design a novel single-piece part in a CAD editor, export it as binary STL (or ASCII PLY), and load
+# it as a geometry component with a material. Attach a scorer as usual. Here a small STL cube stands
+# in for a detector housing / novel collimator body.
+#
+# IMPORTANT (mesh caveat): a tessellated mesh is right for detector housings, pinhole plates and
+# novel single-piece parts. Do NOT mesh a fine multi-hole collimator (10^4-10^5 holes) -> millions
+# of triangles -> unusable navigation; use the parametric TsParallelHoleCollimator for hole arrays.
+# The mesh must have consistent OUTWARD-facing facet winding/normals or G4TessellatedSolid cannot
+# resolve inside/outside (photons pass through as if empty).
+# Run from this example's folder: topas cad_component.txt
+
+i:Ts/NumberOfThreads = 1
+
+sv:Ma/NaI/Components = 2 "Sodium" "Iodine"
+uv:Ma/NaI/Fractions  = 2 0.1534 0.8466
+d:Ma/NaI/Density     = 3.67 g/cm3
+
+sv:Ph/Default/Modules = 1 "g4em-penelope"
+b:Ph/Default/Fluorescence = "True"
+
+d:Ge/World/HLX = 200. mm
+d:Ge/World/HLY = 200. mm
+d:Ge/World/HLZ = 200. mm
+s:Ge/World/Material = "Vacuum"
+
+s:Ge/Part/Type       = "TsCAD"
+s:Ge/Part/Parent     = "World"
+s:Ge/Part/Material   = "NaI"
+s:Ge/Part/InputFile  = "cube"   # loads examples/design/cube.stl (extension added by format)
+s:Ge/Part/FileFormat = "stl"                    # "stl" (binary), "ply" (ascii), or "tet"
+d:Ge/Part/Units      = 1.0 mm
+
+s:Ge/Src/Type = "TsBox"
+s:Ge/Src/Parent = "World"
+s:Ge/Src/Material = "Vacuum"
+d:Ge/Src/HLX = 0.01 mm
+d:Ge/Src/HLY = 0.01 mm
+d:Ge/Src/HLZ = 0.01 mm
+d:Ge/Src/TransZ = -100. mm
+s:So/Beam/Type = "Beam"
+s:So/Beam/Component = "Src"
+s:So/Beam/BeamParticle = "gamma"
+d:So/Beam/BeamEnergy = 140.5 keV
+s:So/Beam/BeamPositionDistribution = "None"
+s:So/Beam/BeamAngularDistribution = "None"
+i:So/Beam/NumberOfHistoriesInRun = 50000
+
+s:Sc/Spec/Quantity   = "EDepSpectrum"
+s:Sc/Spec/Component  = "Part"
+s:Sc/Spec/OutputType = "ASCII"
+s:Sc/Spec/OutputFile = "cad_component"
+s:Sc/Spec/IfOutputFileAlreadyExists = "Overwrite"
+b:Ts/PauseBeforeQuit = "False"

@@ -1,0 +1,45 @@
+# GE StarGuide, WEHR-analog collimator (tungsten septa) + CZT crystal.
+#
+# ENERGY RANGE: 40-279 keV. This scanner does NOT image the Ac-225 440 keV line;
+# use the 218 keV (Fr-221) line only. Do not configure a 440 keV window here.
+#
+# The StarGuide collimator micro-geometry is unpublished (GE); the values below are a
+# calibrated WEHR-analog set that reproduces the measured response, not vendor drawings.
+#
+# IncludeFile fragment. Defines materials + Ge/Collim (hole/septum/length) + Ge/Crystal
+# (material + thickness). The including deck must add World, physics, source, scorer, the
+# detector extents (NHolesX/Y, Crystal HLX/HLY, XBins/YBins) and the Z placements below.
+# See systems/README.md for the full contract. Include exactly one preset per deck.
+#
+# Recommended placement (front collimator face at z = 0):
+#   d:Ge/Collim/TransZ  = 12.5 mm       # CollimatorLength / 2
+#   d:Ge/Crystal/TransZ = 28.875 mm     # 0.25 mm gap behind the collimator back face
+# Detector pixelation: 2.46 mm CZT pixels -> set Ge/Crystal/XBins,YBins to the pixel pitch.
+# Photopeak window (apply in post-processing): Ac-225 218 keV, 20% -> 196-240 keV.
+# Fast-path (TsForcedDetectionProjection) collimator numbers:
+#   HoleDiameter 1.08 mm, SeptalThickness 1.38 mm, CollimatorLength 25.0 mm.
+
+# --- Collimator septa: tungsten ---
+sv:Ma/Tungsten/Components = 1 "Tungsten"
+uv:Ma/Tungsten/Fractions  = 1 1.0
+d:Ma/Tungsten/Density     = 19.3 g/cm3
+
+# --- Crystal: cadmium zinc telluride (CZT) ---
+sv:Ma/CZT/Components = 3 "Cadmium" "Zinc" "Tellurium"
+uv:Ma/CZT/Fractions  = 3 0.4632 0.0300 0.5068
+d:Ma/CZT/Density     = 5.78 g/cm3
+
+# --- Collimator geometry (WEHR-analog) ---
+s:Ge/Collim/Type             = "TsParallelHoleCollimator"
+s:Ge/Collim/Parent           = "World"
+s:Ge/Collim/Material         = "Tungsten"
+d:Ge/Collim/HoleDiameter     = 1.08 mm
+d:Ge/Collim/SeptalThickness  = 1.38 mm
+d:Ge/Collim/CollimatorLength = 25.0 mm
+s:Ge/Collim/Hole/Material    = "Vacuum"
+
+# --- Crystal geometry (CZT, 7.25 mm thick) ---
+s:Ge/Crystal/Type     = "TsBox"
+s:Ge/Crystal/Parent   = "World"
+s:Ge/Crystal/Material = "CZT"
+d:Ge/Crystal/HLZ      = 3.625 mm        # 7.25 mm thick
