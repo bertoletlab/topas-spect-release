@@ -27,13 +27,21 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Free disk space
+        run: |
+          # Geant4 source + build + its ~3 GB of data + install is large for a standard runner.
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/lib/android /opt/hostedtoolcache/CodeQL
+          sudo docker image prune --all --force || true
+          df -h /
+
       - name: Install build dependencies
         run: |
           set -euxo pipefail
           sudo apt-get update
-          sudo apt-get install -y cmake libexpat1-dev libgl1-mesa-dev libglu1-mesa-dev \
-            libxt-dev xorg-dev build-essential libharfbuzz-dev qtbase5-dev qtchooser \
-            qt5-qmake qtbase5-dev-tools
+          # Headless build (no Qt): the smoke test needs no viewer, and Geant4 11.4 defaults GEANT4_USE_QT
+          # to Qt6, which we deliberately avoid here.
+          sudo apt-get install -y cmake build-essential libexpat1-dev zlib1g-dev \
+            libgl1-mesa-dev libglu1-mesa-dev libxt-dev xorg-dev
 
       - name: Cache Geant4 install (${{ env.G4_TAG }})
         id: g4cache
@@ -50,7 +58,7 @@ jobs:
           cmake -S ~/geant4-src -B ~/geant4-build \
             -DGEANT4_INSTALL_DATA=ON \
             -DGEANT4_BUILD_MULTITHREADED=ON \
-            -DGEANT4_USE_QT=ON \
+            -DGEANT4_USE_QT=OFF \
             -DGEANT4_USE_OPENGL_X11=ON \
             -DGEANT4_USE_RAYTRACER_X11=ON \
             -DGEANT4_USE_SYSTEM_ZLIB=ON \
@@ -84,7 +92,7 @@ jobs:
           cmake -S ~/OpenTOPAS -B ~/topas-build \
             -DCMAKE_INSTALL_PREFIX="$HOME/topas-install" \
             -DTOPAS_EXTENSIONS_DIR="$GITHUB_WORKSPACE" \
-            -DTOPAS_USE_QT=ON -DTOPAS_USE_QT6=OFF
+            -DTOPAS_USE_QT=OFF
           cmake --build ~/topas-build --target install -j "$(nproc)"
           test -x "$HOME/topas-install/bin/topas"
 
