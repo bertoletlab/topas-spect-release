@@ -26,6 +26,24 @@ defaults:
     shell: bash
 
 jobs:
+  # Fail closed if a private-generator banner ever reaches a public-shipping path. Private deck/campaign
+  # generators live only under dev-tools/ (stripped from the release) and carry the banner; this is the
+  # automated backstop for resim/GENERATORS_PRIVATE.md. The token is assembled at runtime so this guard
+  # does not match itself.
+  no-private-leak:
+    name: no private-generator banner in public paths
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Guard against publishing private generators
+        run: |
+          PRIV="LAB-""PRIVATE"
+          if grep -rlI --exclude-dir=.git --exclude-dir=dev-tools "$PRIV" .; then
+            echo "::error::private-generator banner in a public-shipping path (listed above). Move it to dev-tools/generators/ or a private home."
+            exit 1
+          fi
+          echo "No private-generator banners in public paths."
+
   compile:
     name: compile (OpenTOPAS ${{ matrix.topas }})
     runs-on: ubuntu-latest
