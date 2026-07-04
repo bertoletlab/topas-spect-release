@@ -70,31 +70,40 @@ photopeak windowing) at absolute scale with no tuning.
 
 The collimator presets in [`systems/`](https://github.com/bertoletlab/topas-spect-release/blob/main/systems/) were checked by absolute planar
 sensitivity: an isotropic point source at 10 cm, a collimator sized wider than the crystal (so
-no photons bypass its edge), and photopeak-window counts divided by emitted decays. Results are
-compared against an independent Monte Carlo characterization of the same GE Discovery NM/CT 670
-geometry (Sawant et al., *J Nucl Med Technol* 2025;53:30-35, SIMIND) and, for the Siemens Symbia
+no photons bypass its edge), and photopeak-window (126.5-154.6 keV) counts divided by emitted
+decays. Each row is reproducible from a shipped deck (`examples/system/<preset>_sensitivity.txt`).
+Results are compared against an independent Monte Carlo characterization of the GE Discovery NM/CT
+670 geometry (Sawant et al., *J Nucl Med Technol* 2025;53:30-35, SIMIND) and, for the Siemens Symbia
 LEHR, against the measured NEMA sensitivity.
 
-99mTc (140.5 keV), counts/decay:
+99mTc (140.5 keV), counts/decay (5x10^7 histories, ~1.5% statistical):
 
 | Collimator | OpenTOPAS-SPECT | Reference | Ratio |
 |------------|:-----------:|-----------|:-----:|
-| Siemens Symbia LEHR | 9.1e-5  | 9.1e-5 (measured)          | 1.00 |
-| GE LEHR             | 9.0e-5  | 7.6-8.5e-5 (SIMIND)        | 1.06-1.19 |
-| GE MEGP             | 9.2e-5  | 7.4-8.3e-5 (SIMIND)        | 1.11-1.24 |
-| GE HEGP             | 1.04e-4 | 1.00e-4 (SIMIND)           | 1.04 |
+| Siemens Symbia LEHR | 8.6e-5  | 9.1e-5 (measured, section 3) | 0.95 |
+| GE LEHR             | 9.15e-5 | 7.6-8.5e-5 (SIMIND)          | 1.08-1.20 |
+| GE MEGP             | 9.32e-5 | 7.4-8.3e-5 (SIMIND)          | 1.12-1.26 |
+| GE HEGP             | 1.09e-4 | 1.00e-4 (SIMIND)             | 1.09 |
 
-Sensitivity agrees with the measured Symbia value within 2%, and with the independent SIMIND
-study within the ~10-25% spread typical of SPECT Monte Carlo inter-comparisons. Agreement is
-closest for the thick-septum HEGP collimator (near-pure geometric transmission); the
-low/medium-energy collimators, whose thinner septa are partly transparent at 140 keV, read
-slightly higher, consistent with explicit-geometry transport capturing the septal penetration
-that analytic models approximate.
+Where a **measured** reference exists (Symbia LEHR, NEMA) the model agrees within ~5% (ratio 0.95),
+which anchors the absolute scale. The GE presets read ~10-25% above the SIMIND study, within the
+spread typical of SPECT Monte Carlo inter-comparisons. Decomposing that excess against an
+opaque-septa (geometric-only) reference separates two contributions:
 
-Septal penetration is exercised directly at 364 keV (131I), where a low-resolution collimator
-becomes penetration-dominated. The ratio of LEHR to HEGP sensitivity at 364 keV is **64.5**
-(OpenTOPAS-SPECT) versus **67.7** (SIMIND), confirming that penetration through the thin LEHR septa
-is transported correctly.
+- **Geometric hole efficiency (dominant).** The geometric-only GE LEHR sensitivity (8.7e-5) already
+  sits at the top of the SIMIND range before any penetration, so most of the gap is the open-area of
+  the explicit hexagonal-hole geometry (open fraction `[d/(d+t)]^2` = 78% LEHR, 55% MEGP, 48% HEGP)
+  versus the reference collimator model, plus inter-code differences in window, backscatter, and the
+  unmodeled crystal cover.
+- **Septal penetration and collimator scatter (secondary).** Adding the real lead septa raises the
+  140 keV sensitivity by 4.8% (LEHR, 0.2 mm septa), 2.9% (MEGP), and 2.7% (HEGP): small at the
+  imaging energy but correctly ordered by septal thickness, which is what makes the low-resolution
+  collimators read slightly higher than the high-resolution ones.
+
+Septal penetration is strongly energy-dependent, and is exercised directly at 364 keV (131I), where
+a low-resolution collimator becomes penetration-dominated: the ratio of LEHR to HEGP sensitivity at
+364 keV is **64.8** (OpenTOPAS-SPECT) versus **67.7** (SIMIND), confirming that penetration through
+the thin LEHR septa is transported correctly.
 
 Geometric resolution: the analytic parallel-hole resolution computed from the encoded hole
 diameter and length, combined in quadrature with a typical NaI intrinsic resolution, reproduces

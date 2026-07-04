@@ -7,6 +7,17 @@ All notable changes to `topas-spect` are documented here. The format follows
 ## [Unreleased]
 
 ### Added
+- **GE collimator sensitivity validation** (`examples/system/ge_{lehr,megp,hegp}_sensitivity.txt`):
+  shipped decks that reproduce the absolute planar sensitivity of the GE LEHR/MEGP/HEGP presets at
+  140.5 keV (9.15/9.32/1.09e-4 counts/decay), plus a septal-penetration decomposition (opaque-septa
+  geometric-only reference at 140 keV; LEHR/HEGP ratio at 364 keV). `docs/validation.md` section 4
+  updated with the reproducible numbers.
+
+### Fixed
+- `docs/validation.md` section 4: corrected the Siemens Symbia LEHR sensitivity row (had the measured
+  9.1e-5 / ratio 1.00 entered as the Monte Carlo result; the actual MC value is 8.6e-5 / ratio 0.95,
+  consistent with section 3), and refined the SIMIND-discrepancy explanation (dominated by geometric
+  open-area, not septal penetration, which is only ~3-5% at 140 keV).
 - **Continuous integration** (`.github/workflows/build.yml`): compiles and links the extension against
   several released OpenTOPAS versions (Docker Hub `opentopas/opentopas` images spanning Geant4 11.3.2
   and 11.1.3), and runs `tests/smoke_decks.sh` on the pinned latest with cached Geant4 data. A

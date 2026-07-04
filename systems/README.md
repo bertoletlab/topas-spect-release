@@ -101,6 +101,10 @@ collimator numbers in a comment so they can be copied onto the fast-path scorer.
   and the tungsten/CZT element-name material builds have been **compile/run-verified** against the
   target build (OpenTOPAS 4.2.p2 / Geant4 11.2.2): the hex-hole (Symbia ME/HE), square-hole
   (D-SPECT, GE 870 CZT), and tungsten/CZT presets all construct with zero overlaps.
-- Absolute-sensitivity validation still covers only the round-hole Symbia LEHR (`docs/validation.md`);
-  the hex/square presets are geometry-verified but their absolute sensitivity/resolution has not yet
-  been benchmarked against published values.
+- Absolute-sensitivity validation now covers the round-hole Symbia LEHR and the **hexagonal-hole GE
+  LEHR/MEGP/HEGP** presets (`docs/validation.md` section 4; reproducible from
+  `examples/system/*_sensitivity.txt`). The GE presets read ~10-25% above the reference SIMIND study,
+  which decomposes into a dominant geometric open-area difference plus a few-percent septal-penetration
+  term (verified at 140 and 364 keV); where a measured reference exists (Symbia NEMA) the model agrees
+  to ~5%. The **square-hole CZT/tungsten presets** (D-SPECT, GE 870) remain geometry-verified only;
+  their absolute sensitivity/resolution has not yet been benchmarked.
