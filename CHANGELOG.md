@@ -4,6 +4,15 @@ All notable changes to `topas-spect` are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+- **Continuous integration** (`.github/workflows/build.yml`): compiles and links the extension against
+  several released OpenTOPAS versions (Docker Hub `opentopas/opentopas` images spanning Geant4 11.3.2
+  and 11.1.3), and runs `tests/smoke_decks.sh` on the pinned latest with cached Geant4 data. A
+  non-blocking `latest`-image canary (weekly schedule) surfaces upstream API changes early. This is the
+  first cross-version CI for a TOPAS/OpenTOPAS extension.
+
 ## [0.2.0] - 2026-07-04
 
 ### Added

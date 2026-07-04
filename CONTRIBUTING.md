@@ -58,6 +58,11 @@ resolves `IncludeFile` relative to the launch directory; the shipped decks use `
 Keep changes focused, describe what and why, and note how you verified it (tests run, decks that build).
 Update `CHANGELOG.md` under `[Unreleased]`.
 
+CI (`.github/workflows/build.yml`) compiles the extension against several released OpenTOPAS versions
+and runs the smoke test on every pull request, so you will see whether your change builds and runs
+against the versions users actually run. A green `build` badge means all pinned versions passed; the
+`latest`-image canary is allowed to fail and is only a heads-up about upstream changes.
+
 ## License
 
 By contributing, you agree that your contributions are licensed under the [MIT License](LICENSE).

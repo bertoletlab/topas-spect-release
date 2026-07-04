@@ -5,6 +5,7 @@
 <p align="center"><b>OpenTOPAS extensions for SPECT imaging simulation.</b></p>
 
 <p align="center">
+  <a href="https://github.com/bertoletlab/topas-spect-release/actions/workflows/build.yml"><img src="https://github.com/bertoletlab/topas-spect-release/actions/workflows/build.yml/badge.svg" alt="build"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT"></a>
   <a href="https://topas-spect-release.readthedocs.io/"><img src="https://img.shields.io/badge/docs-Read%20the%20Docs-8CA1AF?logo=readthedocs&logoColor=white" alt="Documentation"></a>
   <a href="https://github.com/bertoletlab/topas-spect-release/releases"><img src="https://img.shields.io/github/v/release/bertoletlab/topas-spect-release?label=release&color=1f2a56" alt="Release"></a>

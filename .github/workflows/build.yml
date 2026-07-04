@@ -1,0 +1,99 @@
+name: build
+
+# Build the OpenTOPAS-SPECT extension against the collaboration's prebuilt OpenTOPAS images
+# (Docker Hub: opentopas/opentopas), so we know our classes compile, link, and run against the
+# versions users actually run - including Geant4 11.3.2, which is newer than our 11.2.2 dev build.
+#
+#   compile : relink `topas` with our extension across several released versions (no Geant4 data
+#             needed to build). This is the primary version-compatibility gate.
+#   smoke   : on the pinned latest release, download+cache the matching Geant4 data and run every
+#             shipped example deck (tests/smoke_decks.sh).
+#   The `latest` entry in the compile matrix is a non-blocking canary: it tracks the moving image
+#   tag so an upstream API change surfaces here (weekly, via schedule) before a user hits it.
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+  schedule:
+    - cron: "17 6 * * 1"   # Mondays 06:17 UTC
+  workflow_dispatch:
+
+jobs:
+  compile:
+    name: compile (OpenTOPAS ${{ matrix.topas }})
+    runs-on: ubuntu-latest
+    continue-on-error: ${{ matrix.topas == 'latest' }}
+    container:
+      image: opentopas/opentopas:${{ matrix.topas }}
+    strategy:
+      fail-fast: false
+      matrix:
+        topas: [v4.2.3, v4.2.0, v4.1.1, latest]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Compile + link the extension against the installed OpenTOPAS
+        run: |
+          set -euxo pipefail
+          cmake -S /Applications/TOPAS/OpenTOPAS -B "$RUNNER_TEMP/ext-build" \
+            -DCMAKE_INSTALL_PREFIX="$RUNNER_TEMP/ext-install" \
+            -DTOPAS_EXTENSIONS_DIR="$GITHUB_WORKSPACE" \
+            -DTOPAS_USE_QT=ON
+          cmake --build "$RUNNER_TEMP/ext-build" --target install -j "$(nproc)"
+          test -x "$RUNNER_TEMP/ext-install/bin/topas"
+
+  smoke:
+    name: smoke (OpenTOPAS ${{ matrix.topas }})
+    runs-on: ubuntu-latest
+    container:
+      image: opentopas/opentopas:${{ matrix.topas }}
+    strategy:
+      fail-fast: false
+      matrix:
+        topas: [v4.2.3]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache Geant4 data (11.3.2 datasets)
+        id: g4data
+        uses: actions/cache@v4
+        with:
+          path: ${{ runner.temp }}/geant4-data
+          key: g4data-11.3.2-${{ hashFiles('.github/g4data_urls.txt') }}
+
+      - name: Download Geant4 data
+        if: steps.g4data.outputs.cache-hit != 'true'
+        run: |
+          set -euxo pipefail
+          mkdir -p "$RUNNER_TEMP/geant4-data" && cd "$RUNNER_TEMP/geant4-data"
+          while read -r url; do [ -n "$url" ] && wget -q "$url"; done < "$GITHUB_WORKSPACE/.github/g4data_urls.txt"
+          for f in *.tar.gz; do tar -xzf "$f" && rm -f "$f"; done
+
+      - name: Compile the extension
+        run: |
+          set -euxo pipefail
+          cmake -S /Applications/TOPAS/OpenTOPAS -B "$RUNNER_TEMP/ext-build" \
+            -DCMAKE_INSTALL_PREFIX="$RUNNER_TEMP/ext-install" \
+            -DTOPAS_EXTENSIONS_DIR="$GITHUB_WORKSPACE" \
+            -DTOPAS_USE_QT=ON
+          cmake --build "$RUNNER_TEMP/ext-build" --target install -j "$(nproc)"
+
+      - name: Smoke test (all shipped example decks)
+        run: |
+          set -euxo pipefail
+          D="$RUNNER_TEMP/geant4-data"
+          # Use the individual G4*DATA variables, not TOPAS_G4_DATA_DIR (which the image points at an
+          # empty dir and which TOPAS rejects unless it recognizes the full dataset set).
+          unset TOPAS_G4_DATA_DIR
+          export G4NEUTRONHPDATA=$(echo "$D"/G4NDL*) \
+                 G4LEDATA=$(echo "$D"/G4EMLOW*) \
+                 G4LEVELGAMMADATA=$(echo "$D"/PhotonEvaporation*) \
+                 G4RADIOACTIVEDATA=$(echo "$D"/RadioactiveDecay*) \
+                 G4PARTICLEXSDATA=$(echo "$D"/G4PARTICLEXS*) \
+                 G4ABLADATA=$(echo "$D"/G4ABLA*) \
+                 G4INCLDATA=$(echo "$D"/G4INCL*) \
+                 G4ENSDFSTATEDATA=$(echo "$D"/G4ENSDFSTATE*) \
+                 G4PIIDATA=$(echo "$D"/G4PII*) \
+                 G4REALSURFACEDATA=$(echo "$D"/RealSurface*) \
+                 G4SAIDXSDATA=$(echo "$D"/G4SAIDDATA*)
+          TOPAS_BIN="$RUNNER_TEMP/ext-install/bin/topas" bash tests/smoke_decks.sh
