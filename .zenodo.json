@@ -1,0 +1,32 @@
+{
+  "title": "OpenTOPAS-SPECT: SPECT imaging simulation for OpenTOPAS",
+  "description": "OpenTOPAS extensions for SPECT imaging simulation: parallel-hole/pinhole/slit-slat/CAD collimators, NaI and CZT detectors, full-system cameras (dual-head Anger, StarGuide ring, D-SPECT), an energy-resolved crystal response, forced-detection projection scoring, a bundled radioactive decay source, patient-like and standard QA phantoms, dynamic acquisitions, and CT-driven detector motion.",
+  "upload_type": "software",
+  "license": "MIT",
+  "access_right": "open",
+  "creators": [
+    {
+      "name": "Bertolet, Alejandro",
+      "orcid": "0000-0002-9890-693X",
+      "affiliation": "Massachusetts General Hospital and Harvard Medical School"
+    },
+    {
+      "name": "Onecha, Victor V.",
+      "orcid": "0000-0002-3531-2851",
+      "affiliation": "Massachusetts General Hospital and Harvard Medical School"
+    }
+  ],
+  "keywords": [
+    "SPECT",
+    "Monte Carlo",
+    "OpenTOPAS",
+    "TOPAS",
+    "Geant4",
+    "nuclear medicine",
+    "medical physics",
+    "CZT",
+    "collimator",
+    "radiopharmaceutical therapy",
+    "dosimetry"
+  ]
+}

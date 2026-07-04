@@ -1,0 +1,48 @@
+name: Bug report
+description: Report an incorrect result, a build error, or a deck that fails
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the report. The version and environment fields below resolve most issues quickly.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What went wrong, and what you expected instead.
+    validations:
+      required: true
+  - type: input
+    id: opentopas
+    attributes:
+      label: OpenTOPAS version
+      description: The tag or commit you built against (e.g. 4.2.p2).
+    validations:
+      required: true
+  - type: input
+    id: geant4
+    attributes:
+      label: Geant4 version
+      description: e.g. 11.2.2 (geant4-11-02-patch-02).
+    validations:
+      required: true
+  - type: input
+    id: os
+    attributes:
+      label: OS / platform
+      description: e.g. macOS 14 arm64, Ubuntu 22.04.
+  - type: textarea
+    id: deck
+    attributes:
+      label: Deck and command
+      description: The example or a minimal deck, and the exact command you ran (from which directory).
+      render: shell
+  - type: textarea
+    id: output
+    attributes:
+      label: Full output / error
+      description: Paste the complete OpenTOPAS output, including the error.
+      render: shell
+    validations:
+      required: true

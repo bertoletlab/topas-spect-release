@@ -4,6 +4,13 @@
 
 <p align="center"><b>OpenTOPAS extensions for SPECT imaging simulation.</b></p>
 
+<p align="center">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT"></a>
+  <a href="https://topas-spect-release.readthedocs.io/"><img src="https://img.shields.io/badge/docs-Read%20the%20Docs-8CA1AF?logo=readthedocs&logoColor=white" alt="Documentation"></a>
+  <a href="https://github.com/bertoletlab/topas-spect-release/releases"><img src="https://img.shields.io/github/v/release/bertoletlab/topas-spect-release?label=release&color=1f2a56" alt="Release"></a>
+  <img src="https://img.shields.io/badge/OpenTOPAS-4.2.p2-1f2a56" alt="OpenTOPAS 4.2.p2">
+</p>
+
 OpenTOPAS is a powerful, well-validated Monte Carlo platform, but it ships without
 the geometry and scoring components needed to model a clinical SPECT system:
 a physical parallel-hole collimator, an energy-resolved detector response, and

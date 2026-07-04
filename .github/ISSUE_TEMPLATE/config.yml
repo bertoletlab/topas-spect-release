@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Documentation
+    url: https://topas-spect-release.readthedocs.io/
+    about: The OpenTOPAS-SPECT user guide (installation, systems, phantoms, acquisitions, QA).
+  - name: OpenTOPAS
+    url: https://opentopas.readthedocs.io/
+    about: Questions about OpenTOPAS itself (building, core parameters) belong upstream.

@@ -1,0 +1,23 @@
+name: Feature request
+description: Suggest a new camera preset, phantom, scorer, or capability
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: need
+    attributes:
+      label: What you need
+      description: The capability you would like, and the imaging or research problem it solves.
+    validations:
+      required: true
+  - type: textarea
+    id: geometry
+    attributes:
+      label: Geometry / provenance (for new presets or phantoms)
+      description: >
+        If you are proposing a new camera or phantom, cite the source for every dimension (datasheet,
+        paper, or standard). We do not encode invented or interpolated numbers.
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Existing decks or workarounds you have tried.
