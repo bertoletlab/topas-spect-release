@@ -65,15 +65,14 @@ identical). For SPECT the effective variance reduction is **forced detection** a
 VR when a technique matches your problem (for example importance sampling through thick shielding), and
 always validate it.
 
-## Variance reduction for dynamic acquisitions
+## Variance reduction for multi-view acquisitions
 
-`tools/make_dynamic_acquisition.py --vr` applies forced detection to every view of a
-[dynamic acquisition](dynamic_acquisition.md). Each per-view deck holds the forced-detection detector
-fixed and rotates the phantom about its long axis to the view angle. This choice
-sidesteps two OpenTOPAS 4.2.p2 quirks: the forced-detection scorer's transform is wrong
-for a component inside a `Group`, and the surface then needs only one static `RotX=90` instead of a
-compound rotation. The per-view activity decay still applies. On `lu177_psma` this projects correctly
-at every view angle (φ = 0/45/90), each view in seconds.
+Forced detection extends to a full tomographic study: build one deck per view with the
+`ForcedDetectionProjection` surface held fixed and the phantom rotated about its long axis to the view
+angle, applying each view's activity decay. Rotating the phantom rather than the detector sidesteps two
+OpenTOPAS 4.2.p2 quirks: the forced-detection scorer's transform is wrong for a component inside a
+`Group`, and the surface then needs only one static `RotX=90` instead of a compound rotation. Each view
+projects in seconds.
 
 Forced detection replaces only the collimator and crystal transport, not the photon transport through
 the patient. At high history counts, where the phantom's self-attenuation dominates the run time, the
@@ -85,7 +84,7 @@ absolute scale is model-based, so calibrate it against full-MC or measurement as
 
 ## Which to use
 
-- For SPECT, use **forced detection**: CDR characterization, fast projections, dynamic acquisitions, and
+- For SPECT, use **forced detection**: CDR characterization, fast projections, multi-view acquisitions, and
   large patient sweeps. Calibrate the absolute scale once against full-MC. This is the recommended path.
 - Reach for **native OpenTOPAS VR** only when a specific technique fits your problem (for example importance
   sampling through thick shielding, or particle splitting into a hard-to-reach region), and always

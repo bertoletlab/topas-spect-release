@@ -72,7 +72,7 @@ trades the analytic phantom's easy parameter sweeps for full anatomical realism.
 
 A phantom is only the source. To take a single view, add a collimator and detector and a scorer, as in
 the worked example above. To acquire a full study, in which the detector moves and the isotope decays
-over the acquisition time, see [Dynamic acquisitions](dynamic_acquisition.md). Because a collimated
+over the acquisition time, build one deck per view (`examples/phantom/spect_acquisition.txt`). Because a collimated
 camera detects a tiny fraction of the emitted photons, patient-like runs are count-starved; see
 [Variance reduction](variance_reduction.md) for the forced-detection fast path that makes them
 tractable.

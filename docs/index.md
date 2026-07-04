@@ -39,7 +39,7 @@ through the [OpenTOPAS documentation](https://opentopas.readthedocs.io/) first, 
 | Pick a camera and collimator | [Camera and collimator systems](systems.md) |
 | Design a custom collimator or detector | [Designing detectors and collimators](design.md) |
 | Put activity in a patient-like body | [Patient-like phantoms](phantoms.md) |
-| Acquire multiple views with motion and decay | [Dynamic acquisitions](dynamic_acquisition.md) |
+| Acquire multiple views with motion and decay | [Variance reduction](variance_reduction.md) |
 | Derive detector motion from a patient CT | [CT-driven detector motion](ring_motion.md) |
 | Speed up count-starved simulations | [Variance reduction](variance_reduction.md) |
 | Use the helper scripts | [Python tools](tools.md) |

@@ -83,6 +83,6 @@ response, and the energy windowing are all being modeled explicitly. See
 - Replace the point source with a patient-like activity distribution; see
   [Patient-like phantoms](phantoms.md).
 - Turn a single view into a rotating, decaying acquisition; see
-  [Dynamic acquisitions](dynamic_acquisition.md).
+  `examples/phantom/spect_acquisition.txt`.
 - If your simulation is too slow because few photons reach the detector, switch on
   [variance reduction](variance_reduction.md).

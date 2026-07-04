@@ -25,8 +25,7 @@ cd examples/qa
 ```
 
 Each deck writes a planar projection (`EnergyDeposit` per crystal pixel, CSV). Apply the 140.5 keV
-photopeak window in post-processing, and rotate the detector for a tomographic series (see
-[Dynamic acquisitions](dynamic_acquisition.md) and `tools/make_dynamic_acquisition.py`).
+photopeak window in post-processing, and rotate the detector for a tomographic series (see `examples/phantom/spect_acquisition.txt`).
 
 ## The Jaszczak phantom
 

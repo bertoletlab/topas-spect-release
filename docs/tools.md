@@ -1,42 +1,8 @@
 # Python tools
 
-OpenTOPAS-SPECT ships two Python helper scripts under `tools/`. They generate OpenTOPAS decks; they do not
+OpenTOPAS-SPECT ships Python helper scripts under `tools/`. They generate OpenTOPAS decks; they do not
 run the simulation, and the simulation itself needs no Python. Install their dependencies once with
 `pip install -r requirements.txt` (numpy, scipy, pydicom).
-
-## `make_dynamic_acquisition.py`
-
-Turns a single-view phantom scenario into a full multi-view acquisition in which the detector moves
-and the source activity decays on a shared timeline. See
-[Dynamic acquisitions](dynamic_acquisition.md) for the concepts; this is the command reference.
-
-You prescribe the study in clinical console terms and the tool derives the acquisition.
-
-```bash
-python3 tools/make_dynamic_acquisition.py phantoms/scenarios/lu177_psma.txt --decay --isotope "71 177" \
-        --projections 60 --time-per-projection 20 --angular-range 360 --heads 2 --out lu177_study
-```
-
-| Option | Meaning |
-|---|---|
-| `--projections N` | number of projections (angular samples) |
-| `--time-per-projection SEC` | dwell time per projection (default 20 s) |
-| `--angular-range DEG` | 360 (whole body) or 180 (cardiac) |
-| `--heads {1,2,3}` | detector heads acquiring in parallel (shortens the study) |
-| `--matrix N` | projection matrix size (sets the crystal binning) |
-| `--photopeak CENTER WIDTH` | energy-window center keV and total width percent |
-| `--radius CM` | orbit radius (detector-to-axis) |
-| `--out DIR` | output directory for the generated decks |
-
-The study duration that drives the decay is `(projections / heads) × time-per-projection`.
-
-**Engines** (choose one):
-
-| Option | Behavior |
-|---|---|
-| `--decay --isotope "Z A"` | one deck; each organ becomes a bundled `SpectDecaySource` that emits the parent ion and decays natively across the timeline, with the full decay chain produced by `g4radioactivedecay`. No external extension needed. |
-| *(default)* native | one deck per projection; the detector rotates and each projection's histories are scaled by `exp(-λt)` for the isotope. Requires `--half-life-h H`. |
-| `--vr` | forced-detection fast path per projection (the phantom is rotated to the projection angle and imaged analytically). See [Variance reduction](variance_reduction.md). |
 
 ## `make_ring_motion.py`
 

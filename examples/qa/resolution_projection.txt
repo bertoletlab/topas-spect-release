@@ -1,6 +1,6 @@
 # Image the resolution_projection QA phantom end-on through a Siemens Symbia LEHR head (Tc-99m 140.5 keV), one planar
-# projection. Rotate the head for a tomographic series (see examples/acquisition/ and
-# tools/make_dynamic_acquisition.py). Geometry provenance: research/knowledge/spect-qa-phantom-geometry/.
+# projection. Rotate the head for a tomographic series (see examples/acquisition/).
+# Geometry provenance: research/knowledge/spect-qa-phantom-geometry/.
 # The collimator+detector are inlined (not an IncludeFile) so there is a single include chain.
 #
 # Run from this example's folder:  topas resolution_projection.txt

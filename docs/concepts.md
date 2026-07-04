@@ -49,9 +49,9 @@ because it determines how detectors are placed and rotated:
 - A gamma camera images a **transaxial** plane; a single anterior detector sits beside the patient
   (offset in `y`) with its face looking back along the axis toward the patient.
 - A rotating acquisition orbits the detector **around `z`**, or, equivalently and often more
-  reliably, holds the detector fixed and rotates the phantom about `z`. The
-  [dynamic acquisition](dynamic_acquisition.md) and [CT-driven motion](ring_motion.md) chapters use
-  both approaches and explain when each applies.
+  reliably, holds the detector fixed and rotates the phantom about `z`. The [CT-driven motion](ring_motion.md)
+  chapter and `examples/phantom/spect_acquisition.txt` use both approaches and explain when each
+  applies.
 
 !!! note "OpenTOPAS rotations are passive"
     A component's `RotX`/`RotY`/`RotZ` rotate its *frame*, not the object, and are applied in the

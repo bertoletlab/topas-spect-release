@@ -32,7 +32,6 @@ Before opening a pull request, run:
 ```bash
 # Python tools (no OpenTOPAS needed)
 python3 tests/test_ring_motion.py
-python3 tests/test_dynamic_acquisition.py
 
 # every shipped example builds with zero overlaps (needs an OpenTOPAS-SPECT build)
 TOPAS_BIN=/path/to/build/topas bash tests/smoke_decks.sh

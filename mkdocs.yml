@@ -64,7 +64,6 @@ nav:
     - Designing detectors and collimators: design.md
     - Patient-like phantoms: phantoms.md
     - QA phantoms: qa_phantoms.md
-    - Dynamic acquisitions: dynamic_acquisition.md
     - CT-driven detector motion: ring_motion.md
     - Variance reduction: variance_reduction.md
     - Python tools: tools.md

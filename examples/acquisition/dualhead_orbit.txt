@@ -9,7 +9,7 @@
 #
 # To VISUALIZE the motion: open in the OpenTOPAS Qt GUI (b:Ts/UseQt = "True") and click run.
 # To ACQUIRE: add activity sources in the phantom (see phantoms/) and a scorer on each crystal; for
-# per-projection scoring, tools/make_dynamic_acquisition.py bakes one deck per projection.
+# per-projection scoring, use one deck per projection angle.
 #
 # Run from this example's folder:  topas dualhead_orbit.txt
 i:Ts/NumberOfThreads = 1

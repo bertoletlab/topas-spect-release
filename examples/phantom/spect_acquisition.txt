@@ -1,9 +1,8 @@
 # Acquisition example: multi-view SPECT orbit via OpenTOPAS time features.
 #
 # RECOMMENDED: this is full-MC, which is count-starved through a collimator. For a real acquisition,
-# use forced detection (see docs/variance_reduction.md and examples/vr/forced_detection.txt), e.g. via
-# tools/make_dynamic_acquisition.py --vr, so each projection runs in seconds instead of needing huge
-# history counts.
+# use forced detection per view (see docs/variance_reduction.md and examples/vr/forced_detection.txt),
+# so each projection runs in seconds instead of needing huge history counts.
 #
 # A SPECT acquisition = N projections (views) over a gantry orbit, each for a dwell time. Here the
 # OpenTOPAS time feature drives the gantry angle: NumberOfSequentialTimes = N runs (views), and a linear
@@ -20,7 +19,7 @@
 #     decay enabled (add "g4radioactivedecay" to Ph/Default/Modules); activity decays over the
 #     timeline and daughters build to equilibrium. Scale histories/view by exp(-ln2 * t_view / T_half)
 #     for a decaying gamma source.
-#   - Native decay chain: use the bundled SpectDecaySource (via make_dynamic_acquisition.py --decay),
+#   - Native decay chain: use the bundled SpectDecaySource,
 #     which emits the parent ion and lets g4radioactivedecay produce the whole chain.
 
 IncludeFile = ../../phantoms/scenarios/lu177_psma.txt     # fixed phantom: Ge/Torso + organs/lesions + sources

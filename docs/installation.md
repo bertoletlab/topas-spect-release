@@ -53,7 +53,7 @@ other extension sets in one binary:
 -DTOPAS_EXTENSIONS_DIR="/path/to/topas-spect;/path/to/another-extension"
 ```
 
-Native isotope decay for [dynamic acquisitions](dynamic_acquisition.md) needs no extra extension: the
+Native isotope decay needs no extra extension: the
 `SpectDecaySource` decay source is bundled with OpenTOPAS-SPECT. If any extension set you combine uses the
 Qt viewer, add `-DTOPAS_USE_QT=ON -DQt5_DIR=<qt5>/lib/cmake/Qt5` to the **same** configure step, or the
 link step will fail.

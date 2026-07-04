@@ -170,7 +170,7 @@ electromagnetic models.
 
 ## Documentation
 
-The full user guide, installation, quickstart, camera systems, phantoms, dynamic acquisitions,
+The full user guide, installation, quickstart, camera systems, phantoms,
 CT-driven detector motion, variance reduction, and validation, is in [`docs/`](docs/). It builds into
 a hosted site with `mkdocs build`, or on Read the Docs via the included `.readthedocs.yaml`.
 

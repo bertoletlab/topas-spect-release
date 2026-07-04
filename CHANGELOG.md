@@ -36,6 +36,14 @@ All notable changes to `topas-spect` are documented here. The format follows
   with 208 keV gammas through a water slab: all ScatterOrder=0 rows at exactly 208 keV, ScatterOrder=1
   rows Compton-down-scattered (mean ~145 keV) plus the Rayleigh photons at 208 keV.
 
+### Removed
+- **`tools/make_dynamic_acquisition.py` and the dynamic-acquisition documentation are no longer part of
+  the public package.** Deck/campaign generators are lab-private glue that wire the public building
+  blocks for a specific job; the generator (and its test) moved to a private home. The public package
+  ships building blocks and single-deck examples only. Multi-view acquisitions remain demonstrated by
+  `examples/phantom/spect_acquisition.txt`, and the forced-detection per-view technique is documented in
+  `docs/variance_reduction.md`.
+
 ## [0.2.0] - 2026-07-04
 
 ### Added
