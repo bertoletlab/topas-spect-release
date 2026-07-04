@@ -9,3 +9,7 @@
 build/
 *.o
 *.a
+
+# Python bytecode
+__pycache__/
+*.pyc
