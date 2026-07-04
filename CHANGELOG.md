@@ -15,7 +15,15 @@ All notable changes to `topas-spect` are documented here. The format follows
 - `tools/make_qa_phantom.py` generates the fragments (Jaszczak model, sphere ratio, with/without scatter).
 - `examples/qa/` decks imaging each QA phantom through a Symbia LEHR head, and `docs/qa_phantoms.md`.
 - Geometry renders (OpenTOPAS RayTracer) throughout the docs: collimator hole pattern, the three
+- D-SPECT full-system geometry corrected to the published specs (JNMT 2020;48:297, JNM 2019;60:1194):
+  nine 40x160 mm CZT columns in a 90-degree curved arrangement, each swiveling ~110 deg, aimed at the heart.
   full-system cameras (dual-head, StarGuide, D-SPECT), and the Jaszczak / NEMA IEC / patient phantoms.
+- **`docs/validation.md` §7 QA-phantom tomographic recovery**: 60-view forced-detection SPECT of the
+  QA phantoms (Symbia LEHR, 99mTc), reconstructed externally (FBP/MLEM). Adds tomographic spatial
+  resolution (radial/tangential FWHM: 4.8/4.4 mm center, up to 6.1 mm peripheral), detector
+  energy-response scatter fractions, and hot-sphere contrast recovery (largest spheres), with an
+  honest statement that per-pixel image-quality metrics (uniformity, small-sphere contrast) are
+  count-limited under the current partial-VR forced detection (motivating convolution-forced-detection).
 
 ## [0.1.1] - 2026-07-03
 
