@@ -1,0 +1,97 @@
+name: canary-geant4
+
+# Forward-looking canary: build the LATEST Geant4 and OpenTOPAS main FROM SOURCE with this extension,
+# and run the smoke test. This is the one thing the image-based `build` workflow cannot cover, because
+# no OpenTOPAS Docker image exists on Geant4 11.4 yet.
+#
+# NON-BLOCKING and informational. OpenTOPAS releases are pinned to Geant4 11.3.2, so a red run here may
+# mean OpenTOPAS itself does not yet support the newest Geant4, not that this extension is broken. Its
+# job is to give early warning the day the toolchain moves. Schedule + manual only, never gates a PR.
+
+on:
+  schedule:
+    - cron: "43 7 * * 1"   # Mondays 07:43 UTC
+  workflow_dispatch:
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  source-build:
+    name: Geant4 latest + OpenTOPAS main + extension
+    runs-on: ubuntu-latest
+    env:
+      G4_TAG: v11.4.2
+      GDCM_TAG: v2.6.8
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          set -euxo pipefail
+          sudo apt-get update
+          sudo apt-get install -y cmake libexpat1-dev libgl1-mesa-dev libglu1-mesa-dev \
+            libxt-dev xorg-dev build-essential libharfbuzz-dev qtbase5-dev qtchooser \
+            qt5-qmake qtbase5-dev-tools
+
+      - name: Cache Geant4 install (${{ env.G4_TAG }})
+        id: g4cache
+        uses: actions/cache@v4
+        with:
+          path: ~/geant4-install
+          key: geant4-${{ env.G4_TAG }}-install
+
+      - name: Build Geant4 from source (if not cached)
+        if: steps.g4cache.outputs.cache-hit != 'true'
+        run: |
+          set -euxo pipefail
+          git clone https://github.com/Geant4/geant4 --branch "$G4_TAG" --depth 1 ~/geant4-src
+          cmake -S ~/geant4-src -B ~/geant4-build \
+            -DGEANT4_INSTALL_DATA=ON \
+            -DGEANT4_BUILD_MULTITHREADED=ON \
+            -DGEANT4_USE_QT=ON \
+            -DGEANT4_USE_OPENGL_X11=ON \
+            -DGEANT4_USE_RAYTRACER_X11=ON \
+            -DGEANT4_USE_SYSTEM_ZLIB=ON \
+            -DCMAKE_INSTALL_PREFIX="$HOME/geant4-install"
+          cmake --build ~/geant4-build --target install -j "$(nproc)"
+
+      - name: Cache GDCM install (${{ env.GDCM_TAG }})
+        id: gdcmcache
+        uses: actions/cache@v4
+        with:
+          path: ~/gdcm-install
+          key: gdcm-${{ env.GDCM_TAG }}-install
+
+      - name: Build GDCM from source (if not cached)
+        if: steps.gdcmcache.outputs.cache-hit != 'true'
+        run: |
+          set -euxo pipefail
+          git clone https://github.com/malaterre/GDCM --branch "$GDCM_TAG" --depth 1 ~/gdcm-src
+          cmake -S ~/gdcm-src -B ~/gdcm-build \
+            -DGDCM_BUILD_SHARED_LIBS=ON \
+            -DGDCM_BUILD_DOCBOOK_MANPAGES=OFF \
+            -DCMAKE_INSTALL_PREFIX="$HOME/gdcm-install"
+          cmake --build ~/gdcm-build --target install -j "$(nproc)"
+
+      - name: Build OpenTOPAS (main) with the extension
+        run: |
+          set -euxo pipefail
+          git clone https://github.com/OpenTOPAS/OpenTOPAS --depth 1 ~/OpenTOPAS
+          export Geant4_DIR="$HOME/geant4-install"
+          export GDCM_DIR="$HOME/gdcm-install"
+          cmake -S ~/OpenTOPAS -B ~/topas-build \
+            -DCMAKE_INSTALL_PREFIX="$HOME/topas-install" \
+            -DTOPAS_EXTENSIONS_DIR="$GITHUB_WORKSPACE" \
+            -DTOPAS_USE_QT=ON -DTOPAS_USE_QT6=OFF
+          cmake --build ~/topas-build --target install -j "$(nproc)"
+          test -x "$HOME/topas-install/bin/topas"
+
+      - name: Smoke test (all shipped example decks)
+        run: |
+          set -euxo pipefail
+          source "$HOME/geant4-install/bin/geant4.sh"
+          export LD_LIBRARY_PATH="$HOME/topas-install/lib:$HOME/geant4-install/lib:$HOME/gdcm-install/lib:${LD_LIBRARY_PATH:-}"
+          unset TOPAS_G4_DATA_DIR
+          TOPAS_BIN="$HOME/topas-install/bin/topas" bash tests/smoke_decks.sh

@@ -12,6 +12,9 @@ All notable changes to `topas-spect` are documented here. The format follows
   and 11.1.3), and runs `tests/smoke_decks.sh` on the pinned latest with cached Geant4 data. A
   non-blocking `latest`-image canary (weekly schedule) surfaces upstream API changes early. This is the
   first cross-version CI for a TOPAS/OpenTOPAS extension.
+- **Forward-looking source-build canary** (`.github/workflows/canary-geant4.yml`): weekly, builds the
+  latest Geant4 (11.4.x) and OpenTOPAS `main` from source with the extension and runs the smoke test, to
+  catch toolchain drift before any prebuilt image exists on the newest Geant4. Non-blocking.
 
 ## [0.2.0] - 2026-07-04
 
