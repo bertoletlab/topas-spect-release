@@ -58,6 +58,29 @@ Native isotope decay for [dynamic acquisitions](dynamic_acquisition.md) needs no
 Qt viewer, add `-DTOPAS_USE_QT=ON -DQt5_DIR=<qt5>/lib/cmake/Qt5` to the **same** configure step, or the
 link step will fail.
 
+## Runtime environment
+
+Before running (or opening the Qt viewer), OpenTOPAS needs the Geant4 **data-file** environment variables
+set, so it can find the `G4EMLOW`, `PhotonEvaporation`, `RadioactiveDecay`, and other data directories for
+your Geant4 version. The usual way is to source your Geant4 environment script once per shell:
+
+```bash
+source /path/to/geant4-install/bin/geant4.sh
+```
+
+!!! warning "The `TOPAS_G4_DATA_DIR` pitfall"
+    If OpenTOPAS aborts at startup with *"TOPAS does not know the set of data files needed for this Geant4
+    release"*, `TOPAS_G4_DATA_DIR` is set (often from your shell profile) to a data directory whose
+    versions do not match your Geant4 build. **Unset it** and rely on the individual `G4*DATA` variables,
+    or point it at the data directory that matches your Geant4 version:
+
+    ```bash
+    unset TOPAS_G4_DATA_DIR          # then re-run; OpenTOPAS uses the individual G4*DATA variables
+    ```
+
+    A quick check: `echo "$TOPAS_G4_DATA_DIR"` should be empty, and `which topas` should be the build you
+    intend to run. This is an OpenTOPAS/Geant4 setup issue, not a deck issue.
+
 ## Verify the install
 
 Run a shipped example from its own folder. OpenTOPAS resolves `IncludeFile` paths relative to the
