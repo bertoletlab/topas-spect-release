@@ -134,17 +134,25 @@ TsForcedDetectionProjection::TsForcedDetectionProjection(
 	if (fPm->ParameterExists(GetFullParmName("ListMode")))
 		fListMode = fPm->GetBooleanParameter(GetFullParmName("ListMode"));
 
-	// Register ntuple columns: 5 columns (4 standard + Weight)
+	// RecordScatterOrder: append the ScatterOrder column separating primary from scatter
+	fRecordScatterOrder = false;
+	if (fPm->ParameterExists(GetFullParmName("RecordScatterOrder")))
+		fRecordScatterOrder = fPm->GetBooleanParameter(GetFullParmName("RecordScatterOrder"));
+
+	// Register ntuple columns: 5 columns (4 standard + Weight), +1 optional ScatterOrder
 	fNtuple->RegisterColumnI(&fPixelID, "PixelID");
 	fNtuple->RegisterColumnF(&fTrueEnergy, "TrueEnergy", "keV");
 	fNtuple->RegisterColumnF(&fSmearedEnergy, "SmearedEnergy", "keV");
 	fNtuple->RegisterColumnI(&fDetectorID, "DetectorID");
 	fNtuple->RegisterColumnF(&fWeight, "Weight", "");
+	if (fRecordScatterOrder)
+		fNtuple->RegisterColumnI(&fScatterOrder, "ScatterOrder");
 
 	G4cout << "TsForcedDetectionProjection: HoleDiameter=" << fHoleDiameter/mm
 		   << "mm, CollimatorLength=" << fCollimatorLength/mm
 		   << "mm, HoleFraction=" << fHoleFraction
 		   << ", SeptalPenetration=" << (fIncludeSeptalPenetration ? "ON" : "OFF")
+		   << ", ScatterOrder=" << (fRecordScatterOrder ? "ON" : "OFF")
 		   << G4endl;
 }
 
@@ -230,6 +238,13 @@ G4bool TsForcedDetectionProjection::ProcessHits(G4Step* aStep, G4TouchableHistor
 	// Transform momentum direction to local coordinates
 	// Local Z axis points along the collimator bore (radially outward)
 	G4ThreeVector worldDir = preStepPoint->GetMomentumDirection();
+
+	// Scatter-order flag: a primary photon travels in a straight line from its emission
+	// point, so its direction is unchanged from the vertex; any Compton or Rayleigh
+	// deflection changes it. dot < 1 => the photon scattered at least once.
+	const G4ThreeVector& vertexDir = aStep->GetTrack()->GetVertexMomentumDirection();
+	G4int scatterOrder = (vertexDir.dot(worldDir) < 1.0 - 1e-9) ? 1 : 0;
+
 	G4AffineTransform transform = preStepPoint->GetTouchableHandle()
 		->GetHistory()->GetTopTransform();
 	G4ThreeVector localDir = transform.TransformAxis(worldDir);
@@ -280,6 +295,7 @@ G4bool TsForcedDetectionProjection::ProcessHits(G4Step* aStep, G4TouchableHistor
 		entry.trueEnergy_keV = E_keV;
 		entry.smearedEnergy_keV = E_keV;  // no smearing
 		entry.weight = weight * T;
+		entry.scatterOrder = scatterOrder;
 		fEventHits.push_back(entry);
 	} else {
 		// Apply energy smearing to the REAL photon energy (not T*E_k)
@@ -298,6 +314,7 @@ G4bool TsForcedDetectionProjection::ProcessHits(G4Step* aStep, G4TouchableHistor
 			entry.trueEnergy_keV = E_keV;
 			entry.smearedEnergy_keV = smearedE_keV;
 			entry.weight = weight * T;
+			entry.scatterOrder = scatterOrder;
 			fEventHits.push_back(entry);
 		}
 	}
@@ -318,6 +335,7 @@ void TsForcedDetectionProjection::UserHookForEndOfEvent()
 		fSmearedEnergy = (G4float)(hit.smearedEnergy_keV * keV);
 		fDetectorID = fDetectorIDValue;
 		fWeight = (G4float)(hit.weight);
+		fScatterOrder = hit.scatterOrder;
 		fNtuple->Fill();
 	}
 

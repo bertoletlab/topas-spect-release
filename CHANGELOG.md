@@ -15,6 +15,15 @@ All notable changes to `topas-spect` are documented here. The format follows
 - **Forward-looking source-build canary** (`.github/workflows/canary-geant4.yml`): weekly, builds the
   latest Geant4 (11.4.x) and OpenTOPAS `main` from source with the extension and runs the smoke test, to
   catch toolchain drift before any prebuilt image exists on the newest Geant4. Non-blocking.
+- **Scatter-order separation in `TsForcedDetectionProjection`**: a new boolean parameter
+  `b:Sc/<name>/RecordScatterOrder = "True"` appends a 6th ntuple column, `ScatterOrder`, that separates
+  primary (0, unscattered) from scattered (1, scatter-order >= 1) photons so the two can be summed into
+  independent tallies (e.g. for full-MC-vs-fast-model validation). A photon is flagged scattered iff its
+  momentum direction at the FD surface differs from its emission (vertex) direction, which catches
+  Compton **and** Rayleigh deflections (an energy-only split would misclassify Rayleigh photons, which
+  keep the line energy, as primary). Default `False` preserves the original 5-column format. Verified
+  with 208 keV gammas through a water slab: all ScatterOrder=0 rows at exactly 208 keV, ScatterOrder=1
+  rows Compton-down-scattered (mean ~145 keV) plus the Rayleigh photons at 208 keV.
 
 ## [0.2.0] - 2026-07-04
 

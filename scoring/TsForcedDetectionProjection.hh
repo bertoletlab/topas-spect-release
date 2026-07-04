@@ -16,6 +16,13 @@
 //
 // The Weight column encodes the transmission probability. Downstream parsers
 // must SUM weights per pixel (not count rows) to build the projection.
+//
+// RecordScatterOrder = true: append a 6th column, ScatterOrder (int), that
+// separates primary (0, unscattered) from scattered (1, scatter-order >= 1)
+// photons so the two can be summed into separate tallies. A photon is flagged
+// scattered iff its momentum direction at the FD surface differs from its
+// emission (vertex) direction — i.e. it underwent a Compton or Rayleigh
+// deflection. Default false keeps the original 5-column format.
 
 #ifndef TsForcedDetectionProjection_hh
 #define TsForcedDetectionProjection_hh
@@ -67,6 +74,9 @@ private:
 	// ListMode: write ALL photons without smearing or windowing
 	G4bool fListMode;
 
+	// RecordScatterOrder: emit the extra ScatterOrder column (primary vs scatter)
+	G4bool fRecordScatterOrder;
+
 	// Detector ID
 	G4int fDetectorIDValue;
 
@@ -76,6 +86,7 @@ private:
 		G4double trueEnergy_keV;
 		G4double smearedEnergy_keV;
 		G4double weight;  // transmission T * upstream weight
+		G4int scatterOrder;  // 0 = primary (unscattered), 1 = scattered (order >= 1)
 	};
 	std::vector<FDHitEntry> fEventHits;
 
@@ -85,6 +96,7 @@ private:
 	G4float fSmearedEnergy;
 	G4int fDetectorID;
 	G4float fWeight;
+	G4int fScatterOrder;
 
 	// Analytical collimator transmission (Metz-Frey model)
 	G4double ComputeTransmission(G4double cosTheta);
