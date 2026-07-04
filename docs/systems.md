@@ -93,7 +93,7 @@ approximated.
 <img src="../assets/renders/dspect.jpg" alt="D-SPECT swiveling CZT panels" style="width:32%">
 </div>
 *Left to right: the dual-head Anger camera, the StarGuide 12-column CZT ring, and the D-SPECT
-swiveling-panel array (RayTracer renders of the shipped decks).*
+swiveling-panel array (OpenTOPAS Qt viewer snapshots of the shipped decks).*
 
 The presets above define a single detector head. To mount an **entire camera with its motion**, ready
 to combine with a phantom, see

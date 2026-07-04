@@ -13,7 +13,7 @@ any scorer with `s:Sc/<scorer>/Component = "<name>"`.
 ## Collimators
 
 ![Parallel-hole collimator, hexagonal holes on a hex lattice](assets/renders/collimator.jpg)
-*A `TsParallelHoleCollimator` with hexagonal holes on a hexagonal lattice (RayTracer render).*
+*A `TsParallelHoleCollimator` with hexagonal holes on a hexagonal lattice (OpenTOPAS geometry view).*
 
 | Design | Class | Use |
 |--------|-------|-----|

@@ -32,7 +32,7 @@ photopeak window in post-processing, and rotate the detector for a tomographic s
 
 ![Jaszczak Deluxe phantom geometry, rendered](assets/renders/jaszczak.jpg)
 *The six cold-rod sectors (finest red to coarsest purple) and six cold spheres, with the water
-cylinder hidden. Rendered with the OpenTOPAS RayTracer.*
+cylinder hidden.*
 
 A single water-filled acrylic cylinder (216 mm inner diameter, 186 mm tall, 3.2 mm wall) with three
 inserts, so one acquisition covers three tests:
