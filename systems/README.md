@@ -98,7 +98,9 @@ collimator numbers in a comment so they can be copied onto the fast-path scorer.
   (`docs/validation.md`; absolute LEHR sensitivity within 5%).
 - The GE/Siemens presets use **hexagonal** holes (`HoleShape=Hex`, `Lattice=Hex`) and the
   D-SPECT/GE-870 presets use **square** holes (`HoleShape=Square`). These hole-shape code paths
-  and the tungsten/CZT element-name material builds have **not yet been compile/run-verified**
-  against the target OpenTOPAS/Geant4 build, do this on the build host before relying on them.
-- Absolute-sensitivity validation of the hex/square presets is pending (only the round-hole
-  Symbia LEHR sensitivity has been validated to date).
+  and the tungsten/CZT element-name material builds have been **compile/run-verified** against the
+  target build (OpenTOPAS 4.2.p2 / Geant4 11.2.2): the hex-hole (Symbia ME/HE), square-hole
+  (D-SPECT, GE 870 CZT), and tungsten/CZT presets all construct with zero overlaps.
+- Absolute-sensitivity validation still covers only the round-hole Symbia LEHR (`docs/validation.md`);
+  the hex/square presets are geometry-verified but their absolute sensitivity/resolution has not yet
+  been benchmarked against published values.
