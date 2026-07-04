@@ -19,6 +19,12 @@ on:
     - cron: "17 6 * * 1"   # Mondays 06:17 UTC
   workflow_dispatch:
 
+# The opentopas images are debian-based and default to /bin/sh (dash), which lacks `set -o pipefail`
+# and the bash-isms below; run every step under bash.
+defaults:
+  run:
+    shell: bash
+
 jobs:
   compile:
     name: compile (OpenTOPAS ${{ matrix.topas }})
