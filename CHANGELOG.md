@@ -6,26 +6,13 @@ All notable changes to `topas-spect` are documented here. The format follows
 
 ## [Unreleased]
 
-### Added
-- **GE collimator sensitivity validation** (`examples/system/ge_{lehr,megp,hegp}_sensitivity.txt`):
-  shipped decks that reproduce the absolute planar sensitivity of the GE LEHR/MEGP/HEGP presets at
-  140.5 keV (9.15/9.32/1.09e-4 counts/decay), plus a septal-penetration decomposition (opaque-septa
-  geometric-only reference at 140 keV; LEHR/HEGP ratio at 364 keV). `docs/validation.md` section 4
-  updated with the reproducible numbers.
+## [1.0.0] - 2026-07-07
 
-### Fixed
-- `docs/validation.md` section 4: corrected the Siemens Symbia LEHR sensitivity row (had the measured
-  9.1e-5 / ratio 1.00 entered as the Monte Carlo result; the actual MC value is 8.6e-5 / ratio 0.95,
-  consistent with section 3), and refined the SIMIND-discrepancy explanation (dominated by geometric
-  open-area, not septal penetration, which is only ~3-5% at 140 keV).
-- **Continuous integration** (`.github/workflows/build.yml`): compiles and links the extension against
-  several released OpenTOPAS versions (Docker Hub `opentopas/opentopas` images spanning Geant4 11.3.2
-  and 11.1.3), and runs `tests/smoke_decks.sh` on the pinned latest with cached Geant4 data. A
-  non-blocking `latest`-image canary (weekly schedule) surfaces upstream API changes early. This is the
-  first cross-version CI for a TOPAS/OpenTOPAS extension.
-- **Forward-looking source-build canary** (`.github/workflows/canary-geant4.yml`): weekly, builds the
-  latest Geant4 (11.4.x) and OpenTOPAS `main` from source with the extension and runs the smoke test, to
-  catch toolchain drift before any prebuilt image exists on the newest Geant4. Non-blocking.
+First stable, citable release: the reference version used to produce the results in the OpenTOPAS-SPECT
+companion paper. This tags the validated state for citation and marks the public API (extension classes
+and their parameters) as stable. No breaking changes from 0.2.0.
+
+### Added
 - **Scatter-order separation in `TsForcedDetectionProjection`**: a new boolean parameter
   `b:Sc/<name>/RecordScatterOrder = "True"` appends a 6th ntuple column, `ScatterOrder`, that separates
   primary (0, unscattered) from scattered (1, scatter-order >= 1) photons so the two can be summed into
@@ -35,6 +22,25 @@ All notable changes to `topas-spect` are documented here. The format follows
   keep the line energy, as primary). Default `False` preserves the original 5-column format. Verified
   with 208 keV gammas through a water slab: all ScatterOrder=0 rows at exactly 208 keV, ScatterOrder=1
   rows Compton-down-scattered (mean ~145 keV) plus the Rayleigh photons at 208 keV.
+- **GE collimator sensitivity validation** (`examples/system/ge_{lehr,megp,hegp}_sensitivity.txt`):
+  shipped decks that reproduce the absolute planar sensitivity of the GE LEHR/MEGP/HEGP presets at
+  140.5 keV (9.15/9.32/1.09e-4 counts/decay), plus a septal-penetration decomposition (opaque-septa
+  geometric-only reference at 140 keV; LEHR/HEGP ratio at 364 keV). `docs/validation.md` section 4
+  updated with the reproducible numbers.
+- **Continuous integration** (`.github/workflows/build.yml`): compiles and links the extension against
+  several released OpenTOPAS versions (Docker Hub `opentopas/opentopas` images spanning Geant4 11.3.2
+  and 11.1.3), and runs `tests/smoke_decks.sh` on the pinned latest with cached Geant4 data. A
+  non-blocking `latest`-image canary (weekly schedule) surfaces upstream API changes early. This is the
+  first cross-version CI for a TOPAS/OpenTOPAS extension.
+- **Forward-looking source-build canary** (`.github/workflows/canary-geant4.yml`): weekly, builds the
+  latest Geant4 (11.4.x) and OpenTOPAS `main` from source with the extension and runs the smoke test, to
+  catch toolchain drift before any prebuilt image exists on the newest Geant4. Non-blocking.
+
+### Fixed
+- `docs/validation.md` section 4: corrected the Siemens Symbia LEHR sensitivity row (had the measured
+  9.1e-5 / ratio 1.00 entered as the Monte Carlo result; the actual MC value is 8.6e-5 / ratio 0.95,
+  consistent with section 3), and refined the SIMIND-discrepancy explanation (dominated by geometric
+  open-area, not septal penetration, which is only ~3-5% at 140 keV).
 
 ### Removed
 - **`tools/make_dynamic_acquisition.py` and the dynamic-acquisition documentation are no longer part of
