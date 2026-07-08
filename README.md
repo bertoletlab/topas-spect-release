@@ -9,6 +9,7 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT"></a>
   <a href="https://topas-spect-release.readthedocs.io/"><img src="https://img.shields.io/badge/docs-Read%20the%20Docs-8CA1AF?logo=readthedocs&logoColor=white" alt="Documentation"></a>
   <a href="https://github.com/bertoletlab/topas-spect-release/releases"><img src="https://img.shields.io/github/v/release/bertoletlab/topas-spect-release?label=release&color=1f2a56" alt="Release"></a>
+  <a href="https://doi.org/10.5281/zenodo.21251783"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.21251783.svg" alt="DOI"></a>
   <img src="https://img.shields.io/badge/OpenTOPAS-4.2.p2-1f2a56" alt="OpenTOPAS 4.2.p2">
 </p>
 
