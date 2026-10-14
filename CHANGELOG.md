@@ -8,6 +8,10 @@ All notable changes to `topas-spect` are documented here. The format follows
 
 ## [1.1.0] - 2026-10-14
 
+Archived at [10.5281/zenodo.23370949](https://doi.org/10.5281/zenodo.23370949). The DOI in
+`CITATION.cff` and the README badge is the concept DOI, 10.5281/zenodo.21251782, which resolves to
+whichever version is newest.
+
 ### Added
 - **Documentation for the two bundled sources** (`docs/sources.md`), which had none: `SpectDecaySource`
   and `Y90BremsSource`, including the one-photon-per-history contract that makes per-history results
