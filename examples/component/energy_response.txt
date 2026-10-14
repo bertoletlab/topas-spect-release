@@ -4,6 +4,7 @@
 # material/thickness to characterize any crystal at any line.
 
 i:Ts/NumberOfThreads = 0
+i:Ts/ShowHistoryCountAtInterval = 100000   # one progress line per N histories, not one per history
 
 sv:Ma/NaI/Components = 2 "Sodium" "Iodine"
 uv:Ma/NaI/Fractions  = 2 0.1534 0.8466

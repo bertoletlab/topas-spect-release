@@ -1,20 +1,36 @@
 # Variance reduction example: forced detection (fast projection).
 # Replaces the physical collimator + crystal (which detect only ~1 in 5000 photons) with a thin
 # forced-detection surface + the TsForcedDetectionProjection scorer: every forward gamma crossing the
-# surface is analytically projected through the collimator (Metz-Frey transmission) to a weighted
-# detector pixel. No collimator/crystal transport -> orders of magnitude faster.
+# surface is analytically projected through the collimator to a weighted detector pixel. No
+# collimator/crystal transport -> orders of magnitude faster.
 #
 # The surface's local +z must point toward the (virtual) detector. Sum the Weight column per pixel to
-# form the projection; sum all weights / histories is the (model) sensitivity.
+# form the projection; sum all weights / histories is the sensitivity in counts per decay.
 #
-# CALIBRATION CAVEAT: the built-in analytic transmission is UNCALIBRATED (geometric only, penetration
-# off, uses L not L_eff), so its ABSOLUTE sensitivity differs from full-MC (here ~1.3e-5 vs the
-# full-MC/measured 9.1e-5 for Symbia LEHR). The projection SHAPE and relative contrast are correct;
-# calibrate the absolute scale (HoleFraction / a normalization, or IncludeSeptalPenetration + L_eff)
-# against a full-MC or measured reference for your collimator before using absolute counts.
+# WHAT THE MODEL CARRIES. Geometric acceptance comes from the Metz-Atkins-Beck aperture
+# autocorrelation. Septal penetration is ray-traced through the real hole array (the default; set
+# Sc/FD/PenetrationModel = "EffectiveLength" for the cheaper closed form) and must be switched on
+# with IncludeSeptalPenetration, as it is below. With both, this deck gives 7.73e-05 counts per
+# decay against 7.54e-05 from full transport in the same geometry, measured at 2e9 histories.
+# Leave penetration off and it gives 6.93e-05, which is the geometric response alone.
+#
+# OUTPUT SIZE. MinTransmissionFraction bounds the file by dropping the lowest-transmission hits,
+# and it defaults to 1e-6, where the integral has converged and the penetration tail survives.
+# This deck writes about 10 MB at 2e6 histories because of it; raise the parameter if file size
+# matters more than the tail, and read the discarded fraction the scorer prints at the end.
+#
+# WHERE THE SURFACE SITS. The scorer treats the scoring surface as the collimator MID-PLANE, so a
+# transport deck that measures its source distance from the collimator FRONT FACE needs its source
+# moved CollimatorLength/2 further away to compare. Here that is 12.03 mm, and the source below sits
+# at -112.03 mm to match a transport deck with its source 100 mm from the front face.
+#
+# WHAT IT STILL OMITS: intrinsic spatial resolution, depth-of-interaction spread, and scatter in the
+# collimator and the crystal. The last of these is the residual that remains after penetration, and
+# it grows with collimator depth and photon energy.
 # Run from this example's folder: topas forced_detection.txt
 
 i:Ts/NumberOfThreads = 4
+i:Ts/ShowHistoryCountAtInterval = 200000   # one progress line per N histories, not one per history
 sv:Ph/Default/Modules = 1 "g4em-penelope"
 
 d:Ge/World/HLX = 300. mm
@@ -37,7 +53,7 @@ s:Ge/Src/Material = "Vacuum"
 d:Ge/Src/HLX = 0.01 mm
 d:Ge/Src/HLY = 0.01 mm
 d:Ge/Src/HLZ = 0.01 mm
-d:Ge/Src/TransZ = -100. mm
+d:Ge/Src/TransZ = -112.03 mm   # mid-plane registration, see header
 s:So/Beam/Type = "Isotropic"
 s:So/Beam/Component = "Src"
 s:So/Beam/BeamParticle = "gamma"
@@ -57,6 +73,9 @@ i:Sc/FD/NPixelsY = 64
 d:Sc/FD/EnergyWindowLow  = 126.5 keV
 d:Sc/FD/EnergyWindowHigh = 154.6 keV
 s:Sc/FD/OutputType = "ASCII"
+b:Sc/FD/IncludeSeptalPenetration = "True"   # ray-traced; costs a one-off table build of a few seconds
+u:Sc/FD/SeptalMuPerMM = 2.6767             # LEAD at 140.5 keV (NIST XCOM); the scorer default is tungsten
+
 s:Sc/FD/OutputFile = "forced_detection"
 s:Sc/FD/IfOutputFileAlreadyExists = "Overwrite"
 b:Ts/PauseBeforeQuit = "False"

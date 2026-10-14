@@ -32,7 +32,7 @@ required. They are built through the standard `TOPAS_EXTENSIONS_DIR` mechanism.
 | Geometry | `TsSlitSlatCollimator`        | Slit-slat collimator: slit aperture crossed with parallel slats. |
 | Geometry | `TsStarGuideDetector`         | GE StarGuide-style pixelated CZT ring detector. |
 | Scoring  | `TsEDepSpectrum`              | Energy-resolved detector response: per-event deposited-energy spectrum R(E_true -> E_meas), plus energy-weighted interaction position. |
-| Scoring  | `TsForcedDetectionProjection` | Forced-detection (variance-reduction) projection scorer using an analytic Metz-Frey collimator transmission. |
+| Scoring  | `TsForcedDetectionProjection` | Forced-detection (variance-reduction) projection scorer: aperture-autocorrelation acceptance, ray-traced septal penetration, per-energy septal attenuation. |
 | Scoring  | `TsScoreStarGuideProjection`  | Pixel-binned projection scorer with Gaussian energy smearing for the StarGuide geometry. |
 | Source   | `SpectDecaySource`            | Radioactive decay source: emits a parent radionuclide uniformly in a component and scales histories per `Tf` time bin by the true activity decay; `g4radioactivedecay` produces the full chain. |
 | Physics  | `TsPenelopeNoRayleigh`        | `G4EmPenelopePhysics` with Rayleigh scattering removed for gamma (clean single-Compton bookkeeping). |

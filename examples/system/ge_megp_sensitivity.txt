@@ -1,8 +1,12 @@
 # Full-MC system example: absolute planar sensitivity, GE MEGP (hexagonal-hole Pb) + NaI at 10 cm.
 #
 # Selects the GE MEGP preset with a single IncludeFile, then adds the world, physics, source, scorer,
-# detector extents and placements. The collimator is sized wider than the crystal so no photons bypass
-# its edge. Reproduces the validated result (9.32e-5 counts/decay; docs/validation.md section 4).
+# detector extents and placements.
+#
+# HOLE COUNTS: this is a HEXAGONAL lattice, whose rows stack at pitch*sqrt(3)/2 = 0.866*pitch rather
+# than at the pitch. NHolesY must therefore be about 1.155x NHolesX to cover a square crystal. This
+# deck previously set both to 50, which covered +-103.0 mm in x but only +-87.7 mm in y against a
+# +-90 mm crystal, leaving 2.3 mm of BARE crystal along each y edge.
 #
 # In post-processing, count events whose deposited energy falls in the Tc-99m photopeak window
 # (126.5-154.6 keV) and divide by NumberOfHistoriesInRun to get counts/decay.
@@ -13,6 +17,7 @@
 IncludeFile = ../../systems/ge_megp.txt      # Ma/Lead, Ma/NaI, Ge/Collim, Ge/Crystal (spec)
 
 i:Ts/NumberOfThreads = 0
+i:Ts/ShowHistoryCountAtInterval = 5000000   # one progress line per N histories, not one per history
 b:Ge/QuitIfOverlapDetected = "True"
 
 sv:Ph/Default/Modules     = 1 "g4em-penelope"
@@ -26,9 +31,10 @@ d:Ge/World/HLZ = 200. mm
 s:Ge/World/Material = "Vacuum"
 
 # Detector extents + placement (the spec-fixed hole/septum/length/material come from the preset).
-# Collimator front face at z = 0; NHoles chosen so the collimator exceeds the crystal footprint.
-i:Ge/Collim/NHolesX = 50
-i:Ge/Collim/NHolesY = 50
+# Collimator front face at z = 0. NHoles give a ~11 mm collimator margin beyond the crystal on BOTH
+# axes; see the hole-count note in the header for why x and y differ.
+i:Ge/Collim/NHolesX = 49
+i:Ge/Collim/NHolesY = 58
 d:Ge/Collim/TransZ  = 29.0 mm
 
 d:Ge/Crystal/HLX    = 90. mm

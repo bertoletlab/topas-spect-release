@@ -5,6 +5,7 @@
 # Run from this example's folder: topas pixelated_detector.txt
 
 i:Ts/NumberOfThreads = 1
+i:Ts/ShowHistoryCountAtInterval = 50000   # one progress line per N histories, not one per history
 
 sv:Ma/CZT/Components = 3 "Cadmium" "Zinc" "Tellurium"
 uv:Ma/CZT/Fractions  = 3 0.4632 0.0300 0.5068

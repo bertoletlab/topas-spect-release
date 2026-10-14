@@ -13,6 +13,7 @@
 IncludeFile = ../../systems/ge_hegp.txt      # Ma/Lead, Ma/NaI, Ge/Collim, Ge/Crystal (spec)
 
 i:Ts/NumberOfThreads = 0
+i:Ts/ShowHistoryCountAtInterval = 5000000   # one progress line per N histories, not one per history
 b:Ge/QuitIfOverlapDetected = "True"
 
 sv:Ph/Default/Modules     = 1 "g4em-penelope"

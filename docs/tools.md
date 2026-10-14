@@ -28,7 +28,42 @@ python3 tools/make_ring_motion.py --system starguide --radii 91 94 140 157 138 1
 | `--ellipse A B` / `--dicom DIR` / `--radii ...` | contour source (pick one) |
 | `--hu-threshold HU` | body-mask threshold for the DICOM path |
 | `--clearance MM` | gap to leave between each detector and the body |
+| `--acquire` | also write activity and one projection scorer per detector |
+| `--histories N` | background histories per time step with `--acquire` (each lesion takes 5%) |
+| `--pixel MM` | detector pitch with `--acquire`, which sets the scorers' pixel counts |
 | `--out FILE` | output motion deck |
+
+## `export_interfile.py`
+
+Writes an Interfile v3.3 header and data pair from a scorer's projection output, for handing
+projections to a reconstruction package. It takes either a NumPy stack or the CSV aggregated from a
+projection ntuple, plus the acquisition geometry, since a header must state the orbit and the scorer
+output does not carry it.
+
+```bash
+python3 tools/export_interfile.py \
+    --projections proj_stack.npy --pixel-size-x 4.42 --pixel-size-y 4.42 \
+    --start-angle 0 --angular-step 3.0 --direction CW --view-from "+Y" \
+    --radius 200 --energy-window-low 126.5 --energy-window-high 154.6 \
+    --isotope Tc-99m --out sim_projections
+```
+
+Three fields have no safe default and must come from your deck: the rotation `--direction`, the
+azimuth the first view looks from (`--view-from`), and the orbit `--radius`, which a contour-hugging
+orbit does not have as a single number. The reasoning behind each, and the full DICOM and Interfile
+field maps, are in [Exporting projections to a reconstruction](reconstruction_interop.md).
+
+## `audit_decks.py`
+
+Checks every forced-detection deck in a tree against its own declared physics: whether a pinned
+`SeptalMuPerMM` matches a tabulation of the septal material at the deck's own beam energy. A pinned
+coefficient is invisible at run time, since any value produces a plausible projection, so this is the
+only cheap way to catch a deck that quietly models the wrong metal or the wrong energy. An unset
+coefficient passes, because the scorer then tabulates it per photon energy itself.
+
+```bash
+python3 tools/audit_decks.py examples systems
+```
 
 ## `make_qa_phantom.py`
 

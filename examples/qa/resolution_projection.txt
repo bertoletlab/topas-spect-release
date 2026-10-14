@@ -7,6 +7,7 @@
 IncludeFile = ../../phantoms/qa/resolution_sources.txt
 
 i:Ts/NumberOfThreads = 4
+i:Ts/ShowHistoryCountAtInterval = 50000   # one progress line per N histories, not one per history
 sv:Ph/Default/Modules = 1 "g4em-penelope"
 b:Ph/Default/Fluorescence = "True"
 d:Ph/Default/CutForGamma    = 0.5 mm

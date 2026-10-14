@@ -3,8 +3,14 @@
 # binned on the crystal gives the distance-dependent PSF and septal-penetration tail.
 # Collimator shown: Siemens Symbia LEHR (Pb, 1.11 / 0.16 / 24.05 mm). Move the source
 # (Ge/Src/TransZ = -distance) to map resolution vs. distance.
+#
+# CHANNEL GRID, corrected 2026-09-29: 117 x 117, was 80 x 80. At 80 the collimator spanned +-50.7 mm
+# under a +-64 mm crystal, so photons reached the crystal edge without crossing any channel. That
+# artifact lands as a plateau at large radius, which is exactly where this example's septal-penetration
+# TAIL is read, so it corrupted the quantity the deck exists to show. 117 x 117 gives a 10.2 mm margin.
 
 i:Ts/NumberOfThreads = 0
+i:Ts/ShowHistoryCountAtInterval = 500000   # one progress line per N histories, not one per history
 b:Ge/QuitIfOverlapDetected = "True"
 
 sv:Ma/Lead/Components = 1 "Lead"
@@ -30,8 +36,8 @@ s:Ge/Collim/Material = "Lead"
 d:Ge/Collim/HoleDiameter     = 1.11 mm
 d:Ge/Collim/SeptalThickness  = 0.16 mm
 d:Ge/Collim/CollimatorLength = 24.05 mm
-i:Ge/Collim/NHolesX = 80
-i:Ge/Collim/NHolesY = 80
+i:Ge/Collim/NHolesX = 117
+i:Ge/Collim/NHolesY = 117
 s:Ge/Collim/Hole/Material = "Vacuum"
 d:Ge/Collim/TransZ = 12.025 mm      # front face at z = 0
 

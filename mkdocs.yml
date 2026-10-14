@@ -62,10 +62,12 @@ nav:
   - User Guide:
     - Camera and collimator systems: systems.md
     - Designing detectors and collimators: design.md
+    - Radionuclide sources: sources.md
     - Patient-like phantoms: phantoms.md
     - QA phantoms: qa_phantoms.md
     - CT-driven detector motion: ring_motion.md
     - Variance reduction: variance_reduction.md
+    - Exporting projections to a reconstruction: reconstruction_interop.md
     - Python tools: tools.md
   - Validation: validation.md
   - Building details: building.md

@@ -6,11 +6,200 @@ All notable changes to `topas-spect` are documented here. The format follows
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-10-14
+
+### Added
+- **Documentation for the two bundled sources** (`docs/sources.md`), which had none: `SpectDecaySource`
+  and `Y90BremsSource`, including the one-photon-per-history contract that makes per-history results
+  per emitted photon rather than per decay, where the tabulated Y-90 photon spectra come from, and
+  what that source is not a substitute for (beta dosimetry).
+- **`docs/reconstruction_interop.md` and `docs/sources.md` added to the docs navigation.** The export
+  contract shipped in the repository but was absent from the built site.
+- **`tools/audit_decks.py`, previously maintainer-only.** It checks a deck's declared septal
+  attenuation against a tabulation at the deck's own beam energy, which is a check users need for
+  their own decks and not only we do; the shipped physics gate also calls it, so leaving it out of the
+  release left that suite unable to run.
+- **`tools/make_ring_motion.py --acquire` writes an acquiring ring deck, not only a motion deck**, and
+  the generated StarGuide example ships as `examples/acquisition/starguide_ring_acquire.txt`. The
+  motion deck carried geometry and time features with no activity and no scorer, so the twelve-column
+  acquisition the companion paper shows could not be reproduced from the public package: its sources
+  and scorers lived in laboratory campaign generators that are not released. The new mode adds a
+  volumetric 99mTc background in the body phantom, two hot lesions, and one `StarGuideProjection`
+  scorer per column, pixelated from the panel dimensions (`--pixel`, default 2.46 mm, giving 16 x 112
+  pixels on the StarGuide panel). `--histories` sets the background histories per time step and each
+  lesion takes five percent of it. Verified end to end: the shipped deck builds with no overlapping
+  volumes and writes twelve projection files in 98 s on four threads.
+
+### Fixed
+- **`docs/variance_reduction.md` described the pre-fix forced-detection scorer as the design.** It
+  called the transmission "uncalibrated: geometric only, with penetration off", using the physical
+  hole length in place of the effective length, and told users to calibrate the absolute scale around
+  the resulting shortfall. That shortfall was the transmission bug this release line fixed. The
+  section now states the acceptance model, the traced penetration, the per-energy coefficient and the
+  processes the scorer omits, and the mid-plane registration trap is a warning box rather than a
+  sentence in passing. `README.md` called the model "Metz-Frey", which it is not.
+- **`docs/design.md` did not mention that a converging collimator can refuse to build.** A user whose
+  deck aborts on inter-channel clearance now finds the reason, and what to change, in the docs.
+
+### Changed
+- **Septal attenuation is now tabulated per photon energy, and `Sc/<name>/SeptalMuPerMM` is
+  optional.** It was a single scalar applied to every photon regardless of energy, which a real
+  source cannot tolerate: lead attenuates 4.5 times more strongly at 113 keV than at 208 keV and
+  177Lu emits both, while across one 20 percent photopeak window the coefficient still varies by 65
+  percent. Measured on the Symbia LEHR geometry, a deck pinning the 140.5 keV coefficient and then
+  scoring the 208 keV line reads **4.8512e-05 against a correct 8.8276e-05, 82 percent low**.
+  Leaving the parameter unset now applies a NIST XCOM tabulation for the septum material at each
+  photon's own energy, with lead's K edge at 88 keV and tungsten's at 69.5 keV resolved.
+  `Sc/<name>/SeptalMaterial` selects the material (default `G4_Pb`), and
+  `Sc/<name>/SeptalMuEnergies` with `Sc/<name>/SeptalMuValues` supply a tabulation for anything
+  else, matching how this scorer already takes crystal efficiency and energy resolution. A deck
+  that pins a coefficient keeps it, and reproduces its previous result to 4 parts in a million.
+  This is a tabulation rather than a call into Geant4 on purpose: `G4EmCalculator` from a worker
+  thread forces `G4PenelopePhotoElectricModel::ReadDataFile()`, which is master-thread-only, and
+  aborts the run.
+- **The ray trace no longer bakes in an attenuation coefficient.** How much lead a ray crosses
+  depends on the hole array and the angle alone, so the trace now happens once and every
+  coefficient is evaluated on it. Without that, a per-energy coefficient would mean re-tracing per
+  energy.
+- **`Sc/<name>/PenetrationModel` now defaults to `"RayTrace"`.** The scorer walks each ray through
+  the hole array in depth, accumulates the lead it crosses, and averages `exp(-mu*l)` over entry
+  position within one aperture and over azimuth, tabulating the result once per geometry at
+  construction. Across 14 configurations, five collimators and 113 keV to 1 MeV, the end-to-end
+  ratio against full transport runs **0.752 to 1.103, mean absolute error 7.5 percent**, where the
+  effective-length correction on the same set ranged from 0.014 to 1.02. `"EffectiveLength"` remains
+  selectable and costs one table build less, about 4 to 5 s; per photon the two are the same price,
+  since both reduce to a table lookup (measured at 4e7 histories: 21.5 s against 25.8 s of wall
+  clock, 208 s against 209 s of CPU).
+- **`Sc/<name>/MinTransmissionFraction` now defaults to `1e-6`, from `1e-4`.** The floor bounds the
+  output file, and the previous default was discarding most of the penetration tail the ray trace
+  exists to produce. On the Symbia LEHR geometry it removed 0.66 percent of the integral, cut the
+  modeled support from 118.2 mm to 18.7 mm, and dropped the signal beyond r = 12.3 mm from 0.723
+  percent to 0.069 percent against 0.881 percent under full transport: with the floor at 1e-6 the
+  model reproduces that transported tail to 0.16 percentage points. The integral is converged there
+  (0.009 percent from its value at 1e-9). It never saved run time, contrary to the comment it
+  carried (108.7 s against 110.2 s of CPU at 2e7 histories); it saves output size, 56,809 entries
+  against 1,559,729 for that run. Raise it when file size matters more than the tail.
+  All 14 validation configurations were re-run at the new default: only GE HEGP at 364.5 keV moved
+  by more than 0.3 percent, from 1.103 to 1.110 against full transport, and the range over the set
+  is 0.752 to 1.110 with a mean absolute error of 7.5 percent.
+
+### Added
+- **Aluminium entrance window in `examples/source/decay_source.txt`**: a 2 mm `G4_Al` slab in front
+  of the crystal, with a note explaining why it is load-bearing rather than decorative. A decay
+  source emits betas, conversion electrons and alphas alongside the gammas; in the example's vacuum
+  world those crossed to a bare NaI slab and deposited their full kinetic energy, which no real
+  camera records, since every gamma camera has a metal entrance window. Measured on the shipped
+  geometry with a particle-tagged phase space (2.4e6 decays): **177Lu** scored 7,639 electrons
+  against 123,271 gammas entering the crystal, 5.8 percent of arrivals and 4.7 percent of counts in
+  the plotted band; the window cuts that to 553 (−93 percent) at a cost of 7.1 percent of the
+  gammas. **225Ac** was worse, scoring alphas directly: maximum deposit 25.6 MeV and 1.204 percent
+  of counts above 3 MeV, both of which the window removes completely (alphas 437 → 0, maximum
+  deposit 2.03 MeV, above 3 MeV 0.000 percent). Photopeak positions and the 177Lu 208:113
+  shape-normalized peak-height ratio (1.107) are unaffected either way; the error was confined to
+  the continuum, which the bare-crystal deck inflated by 13-16 percent between and above the peaks
+  and by up to 70 percent per bin immediately above the 208 keV line.
+- `docs/building.md`: a required-OpenTOPAS-version section. On arm64, radioactive-decay sources need
+  OpenTOPAS commit `404fe33` or newer; without it the at-rest ion momentum can evaluate to NaN under
+  FMA contraction and every decay happens on the source volume's `+z` surface instead of throughout
+  its volume. Per-nuclide and per-build (90Y affected, 177Lu and 225Ac not), so the section ships a
+  vertex-tagged self-test rather than a list of safe nuclides.
+- `docs/validation.md` §7: topas-starguide retirement cross-check. Confirmed byte-for-bit identical
+  output before/after swapping topas-starguide's `TsParallelHoleCollimator`,
+  `TsStarGuideDetector`, `TsScoreStarGuideProjection`, and `TsForcedDetectionProjection` for this
+  package's copies, same seed, same deck. topas-spect is now the single source of truth for all
+  four extensions; topas-starguide's own copies are retiring (PI ruling 2026-08-15).
+
+### Fixed
+- **The scorer reports the attenuation coefficient it is using.** `SeptalMuPerMM` defaults to
+  tungsten at 3.56/mm while most clinical parallel-hole collimators are lead, and
+  `examples/vr/forced_detection.txt` models a Symbia LEHR collimator without setting it: with
+  penetration enabled it ran lead septa at a tungsten coefficient and read 7.4321e-05 instead of
+  7.6833e-05. The scorer now names the coefficient whenever penetration is on and the deck left it
+  implicit, the example sets it, and the example's header no longer calls the model uncalibrated
+  with a counts-per-decay figure that predates the transmission fix.
+- **The `RayTrace` guard no longer rejects decks that never asked for penetration.** Aborting when
+  `PenetrationModel` was set to `"RayTrace"` while `IncludeSeptalPenetration` was false made sense
+  while ray tracing had to be opted into; as a default it broke every deck that leaves penetration
+  alone, `examples/vr/forced_detection.txt` included. The guard now fires only on an explicit
+  request, and the transmission table is built only when penetration is on.
+- **The discarded weight is counted rather than predicted.** Workers accumulate it, the master
+  collects it in `AbsorbResultsFromWorkerScorer`, and it is reported once per run. An earlier
+  analytic estimate from the transmission table overstated it badly where the widest angles miss
+  the detector and would be rejected anyway, predicting 5.6 percent for a deck whose true loss is
+  0.00 percent. Checked against measurement at three geometries: 0.00006 reported against 0.000
+  measured, 0.185 against 0.174, 0.657 against 0.655 percent.
+- **Two design/component examples whose collimators did not shadow their crystals.**
+  `examples/component/collimator_detector_response.txt`: channel grid 80 x 80 -> **117 x 117**. At 80
+  the collimator spanned +-50.7 mm under a +-64 mm crystal, so photons reached the crystal edge
+  without crossing any channel. That artifact appears as a plateau at large radius, where
+  this example's septal-penetration TAIL is read, so it corrupted the penetration tail this deck exists to
+  demonstrate. `examples/design/converging_conebeam.txt`: crystal +-120 mm -> **+-56 mm**, channel
+  grid unchanged at 90 x 90, which shadows +-66.4 mm. The magnified image of its off-axis point lands
+  near 40 mm and still fits. Enlarging the collimator to 152 x 177 would also have worked, at roughly
+  three times the transport cost, which is not worth it for a geometry demonstration. Note that a
+  converging collimator legitimately images onto a detector wider than itself, so a narrower
+  collimator there is a design choice rather than a defect; the crystal was trimmed only so that a
+  whole-crystal total means something.
+- **Symbia LEHR sensitivity corrected from 8.6e-5 to 7.5e-5 counts/decay, ratio 0.95 to 0.82.**
+  `examples/system/symbia_lehr_sensitivity.txt` built a 152.4 mm collimator over a 180 mm crystal, so
+  a photon aimed at the crystal edge left through the collimator's side after crossing only 21 percent
+  of its length and reached the detector through far less lead than a full-length path. Measured at
+  2e8 histories: 8.6075e-05 against 7.4870e-05 after correcting the hole counts to 158 x 158, a
+  **13.0 percent** inflation, and scoring by max(|x|,|y|) puts every one of the 2241 excess counts in
+  the 76.1 to 90 mm band the collimator failed to cover while counts inside the footprint are
+  identical (14969 against 14969). An opaque-septa control identifies the mechanism as peripheral
+  septal penetration rather than photons bypassing the collimator: it moves only 0.05 percent under
+  the identical coverage change (6.9620e-05 to 6.9585e-05), whereas a bypassing path contains no
+  collimator at all and would have shown the excess in both arms.
+- **`docs/validation.md` sections 3 and 4 rewritten.** The Symbia LEHR ratio of 0.95 was two
+  compensating errors: the 15 percent inflation above, and a 30 percent deficit because the preset
+  builds round holes on a square lattice for a camera whose collimator is hexagonal on a hexagonal
+  lattice (measured hex/round 1.432, derived 1.404). Modeled with hexagonal holes and correct
+  coverage the row reads 1.07e-04, ratio 1.18. Section 4's claim that the absolute scale is anchored
+  to within 5 percent is withdrawn. Section 4's geometric-resolution claim is replaced by simulated
+  point-spread widths: it previously combined an analytic resolution with an intrinsic term and
+  compared it against 7.2 / 9.7 / 12.1 mm described as "the published planar FWHM", but those are
+  Sawant 2025 Table 2, the SIMIND study already supplying the sensitivity references, so one
+  source was counted twice. `systems/symbia_lehr.txt` now records that it builds round holes despite
+  quoting hexagonal flat-to-flat dimensions, and how to switch it.
+- **`SESSION_KICKOFF.md`**: withdrew the pre-fix forced-detection finding (~1.3e-5, "7x low"), which
+  came from the superseded transmission formula. The corrected scorer gives 6.93e-5 and recovers
+  91 percent of full transport at 140.5 keV.
+- **`Ts/ShowHistoryCountAtInterval` set in all 20 example decks that run histories.** None of them set
+  it, so TOPAS printed a progress line for EVERY history: running `examples/system/ge_lehr_sensitivity.txt`
+  as shipped wrote a **1.8 GB log in five minutes** and ran roughly ten times slower, because the
+  worker threads serialize on that output. The interval is scaled per deck to about ten progress lines
+  (2,000 for the 20k-history `decay_source.txt` up to 20,000,000 for the 2e8-history
+  `symbia_lehr_sensitivity.txt`). Verified on `ge_lehr_sensitivity.txt`: log 1.8 GB -> **28 KB**, 10 progress
+  lines, 50.7 s wall clock, and the scored sensitivity unchanged at 9.1260e-05 counts/decay
+  (ratio 1.0000 against that identical deck run before this change). The three `examples/acquisition/` decks
+  are untouched: they are geometry and motion demonstrations with no radiation source.
+- **Hexagonal-lattice hole counts in `examples/system/ge_lehr_sensitivity.txt` (111x111 -> 117x136)
+  and `ge_megp_sensitivity.txt` (50x50 -> 49x58)**, so each collimator covers its crystal on BOTH
+  axes. `TsParallelHoleCollimator` stacks hex-lattice rows at `pitch*sqrt(3)/2`, so an `NHolesY` sized
+  from the pitch, which is the square-lattice formula, builds a collimator only 0.866 as tall as
+  intended: LEHR covered ±81.8 mm and MEGP ±87.7 mm against a ±90 mm crystal. Both headers had
+  asserted the opposite ("sized wider than the crystal so no photons bypass its edge"), and each now
+  documents the row-spacing trap instead. Sensitivity effect measured at 5e7 histories: LEHR
+  9.1500e-05 -> 9.1260e-05 (0.997), MEGP 9.3160e-05 -> 9.3980e-05 (1.009), both inside the ~1.5
+  percent statistical error, so **the published values for these two presets stand**. The deficit is
+  benign here because an oblique ray aimed at the crystal edge still traverses 66 and 94 percent of the
+  collimator length respectively; an identical deficit costs a factor of 26.7 in a geometry where that
+  fraction falls to zero. The hole geometry itself was verified independently: normal-incidence
+  transmission reproduces the exact open-area fraction to within 0.4 percent for hex-on-hex,
+  square-on-square, round-on-square and round-on-hex, and the GE datasheet's stated hole counts (LEHR
+  86300, LEGP 56560, MEGP 15210, HEGP 7410) come out to better than 0.1 percent from the hex cell area
+  `(sqrt(3)/2)p^2`, against 0.866 of the stated count for a square cell.
+- `docs/validation.md`: corrected the 364 keV LEHR:HEGP septal-penetration ratio from a stale hand-carried
+  value of 64.8 to **59.5**, the run-of-record from the pinned build `89d9c87` (LEHR 118215 / HEGP 1988
+  counts, `resim/pulled/s45/`). The 64.8 figure predated the pinned build and was never regenerable; the
+  companion manuscript already reports 59.5. SIMIND reference (67.7) unchanged.
+
 ## [1.0.0] - 2026-07-07
 
 First stable, citable release: the reference version used to produce the results in the OpenTOPAS-SPECT
-companion paper. This tags the validated state for citation and marks the public API (extension classes
-and their parameters) as stable. No breaking changes from 0.2.0.
+companion paper. Tagging the validated state for citation, and marking the public API (extension
+classes and their parameters) as stable. No breaking changes from 0.2.0.
 
 ### Added
 - **Scatter-order separation in `TsForcedDetectionProjection`**: a new boolean parameter
@@ -20,7 +209,7 @@ and their parameters) as stable. No breaking changes from 0.2.0.
   momentum direction at the FD surface differs from its emission (vertex) direction, which catches
   Compton **and** Rayleigh deflections (an energy-only split would misclassify Rayleigh photons, which
   keep the line energy, as primary). Default `False` preserves the original 5-column format. Verified
-  with 208 keV gammas through a water slab: all ScatterOrder=0 rows at exactly 208 keV, ScatterOrder=1
+  with 208 keV gammas through a water slab: all ScatterOrder=0 rows at 208 keV, ScatterOrder=1
   rows Compton-down-scattered (mean ~145 keV) plus the Rayleigh photons at 208 keV.
 - **GE collimator sensitivity validation** (`examples/system/ge_{lehr,megp,hegp}_sensitivity.txt`):
   shipped decks that reproduce the absolute planar sensitivity of the GE LEHR/MEGP/HEGP presets at

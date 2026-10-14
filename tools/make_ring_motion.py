@@ -9,8 +9,14 @@ to its own docked radius, following the contour) -> ACQUIRE (gantry rotates whil
 RETRACT home. This mirrors StarGuide's optical-scout body-contouring: each of the 12 columns is driven
 to its own radius, so the "ring" is an irregular shape hugging the patient.
 
+With --acquire the deck also carries activity and scoring: a volumetric 99mTc background in the body
+plus two hot lesions, and one StarGuideProjection scorer per column, so the same motion records a
+projection per detector instead of only showing the geometry. The scorers accumulate over the whole
+timeline; to score the ACQUIRE phase alone, run with --napproach 0.
+
 Examples:
   make_ring_motion.py --system starguide --ellipse 150 100 --out sg_motion.txt
+  make_ring_motion.py --system starguide --ellipse 150 100 --acquire --out sg_acquire.txt
   make_ring_motion.py --system ring --ndet 16 --dicom /path/to/CT --hu-threshold -300 --out ring_motion.txt
 """
 import argparse, math, os
@@ -111,6 +117,52 @@ def collision_safe_radii(R, N, clearance, gantry, sweep, hlx):
     return out
 
 
+def acquire_block(N, sysd, a):
+    """Activity in the body and one projection scorer per detector.
+
+    Lesion coordinates are in the body's own frame, which is rotated 90 degrees
+    about x, so local z runs along the patient axis and local y along world z.
+    """
+    npx = max(1, int(round(2.0 * sysd["hlx"] / a.pixel)))
+    npy = max(1, int(round(2.0 * sysd["hly"] / a.pixel)))
+    px = 2.0 * sysd["hlx"] / npx
+    py = 2.0 * sysd["hly"] / npy
+    bkg = int(a.histories)
+    les = max(1, int(0.05 * a.histories))
+
+    L = ["", "# ---- activity: soft-tissue background plus two hot lesions ----",
+         'd:Ph/Default/CutForGamma    = 0.05 mm', 'd:Ph/Default/CutForElectron = 0.05 mm',
+         's:So/BodyBkg/Type = "Volumetric"', 's:So/BodyBkg/Component = "Body"',
+         's:So/BodyBkg/VolumetricParticle = "gamma"', 'd:So/BodyBkg/VolumetricEnergy = 140.5 keV',
+         's:So/BodyBkg/ActiveMaterial = "G4_TISSUE_SOFT_ICRP"',
+         f'i:So/BodyBkg/NumberOfHistoriesInRun = {bkg}']
+    for i, (lx, ly, lz, r) in enumerate([(50.0, 30.0, 0.0, 12.0), (-40.0, -25.0, 40.0, 8.0)]):
+        n = f"Lesion{i}"
+        L += [f's:Ge/{n}/Type = "TsSphere"', f's:Ge/{n}/Parent = "Body"',
+              f's:Ge/{n}/Material = "G4_TISSUE_SOFT_ICRP"', f'd:Ge/{n}/RMax = {r} mm',
+              f'd:Ge/{n}/TransX = {lx} mm', f'd:Ge/{n}/TransY = {ly} mm', f'd:Ge/{n}/TransZ = {lz} mm',
+              f's:Ge/{n}/Color = "red"',
+              f's:So/{n}Src/Type = "Volumetric"', f's:So/{n}Src/Component = "{n}"',
+              f's:So/{n}Src/VolumetricParticle = "gamma"',
+              f'd:So/{n}Src/VolumetricEnergy = 140.5 keV',
+              f's:So/{n}Src/ActiveMaterial = "G4_TISSUE_SOFT_ICRP"',
+              f'i:So/{n}Src/NumberOfHistoriesInRun = {les}']
+    L += ["", f"# ---- scoring: one StarGuideProjection per column, {npx} x {npy} pixels of "
+              f"{px:.3f} x {py:.3f} mm ----"]
+    for i in range(N):
+        s = f"Sc/Det{i}Proj"
+        L += [f's:{s}/Quantity = "StarGuideProjection"', f's:{s}/Component = "Det{i}"',
+              f'd:{s}/PixelSizeX = {px:.4f} mm', f'd:{s}/PixelSizeY = {py:.4f} mm',
+              f'i:{s}/NPixelsX = {npx}', f'i:{s}/NPixelsY = {npy}',
+              f'd:{s}/EnergyWindowLow  = 126.5 keV', f'd:{s}/EnergyWindowHigh = 154.6 keV',
+              f'i:{s}/DetectorID = {i}', f's:{s}/OutputType = "ASCII"',
+              f's:{s}/OutputFile = "ring_det{i}"',
+              f's:{s}/IfOutputFileAlreadyExists = "Overwrite"',
+              f'b:{s}/OutputToConsole = "False"']
+    L += ['b:Ts/UseQt = "False"']
+    return L
+
+
 def main():
     p = argparse.ArgumentParser()
     p.add_argument("--system", choices=list(SYSTEMS), default="starguide")
@@ -127,6 +179,14 @@ def main():
     p.add_argument("--napproach", type=int, default=10)
     p.add_argument("--nacquire", type=int, default=16)
     p.add_argument("--out", default="ring_motion.txt")
+    p.add_argument("--acquire", action="store_true",
+                   help="also write activity and one projection scorer per detector")
+    p.add_argument("--histories", type=float, default=2e5,
+                   help="histories per time step for the body background with --acquire "
+                        "(each lesion gets 5 percent of it); scale up for a publication-quality run")
+    p.add_argument("--pixel", type=float, default=2.46,
+                   help="detector pixel pitch (mm) with --acquire")
+    p.add_argument("--threads", type=int, default=4, help="threads with --acquire")
     a = p.parse_args()
 
     sysd = dict(SYSTEMS[a.system]); N = a.ndet or sysd["ndet"]
@@ -147,8 +207,12 @@ def main():
     src = f"ellipse {a.ellipse}" if a.ellipse else "measured radii" if a.radii else f"DICOM {a.dicom}"
     L = [f"# {a.system} ring motion from {src}",
          f"# {N} detectors; per-detector docked radii (mm): " + ", ".join(f"{r:.0f}" for r in Rc),
-         "# HOME -> APPROACH (contour-hug) -> ACQUIRE (gantry+sweep) -> RETRACT. No radiation; open in the Qt GUI, click run.",
-         "i:Ts/NumberOfThreads = 1", f"i:Tf/NumberOfSequentialTimes = {Ntot}", "d:Tf/TimelineStart = 0. s", f"d:Tf/TimelineEnd = {Ntot-1}. s",
+         ("# HOME -> APPROACH (contour-hug) -> ACQUIRE (gantry+sweep) -> RETRACT. Activity and one "
+          "projection scorer per column; the scorers accumulate over the whole timeline."
+          if a.acquire else
+          "# HOME -> APPROACH (contour-hug) -> ACQUIRE (gantry+sweep) -> RETRACT. No radiation; open in the Qt GUI, click run."),
+         f"i:Ts/NumberOfThreads = {a.threads if a.acquire else 1}",
+         f"i:Tf/NumberOfSequentialTimes = {Ntot}", "d:Tf/TimelineStart = 0. s", f"d:Tf/TimelineEnd = {Ntot-1}. s",
          "d:Ge/World/HLX = 420. mm", "d:Ge/World/HLY = 420. mm", "d:Ge/World/HLZ = 420. mm", 's:Ge/World/Material = "Vacuum"',
          'b:Ge/World/Invisible = "True"', 'sv:Ph/Default/Modules = 1 "g4em-penelope"',
          f'iv:Gr/Color/tc_det = 3 {sysd["color"]}', f'sv:Ma/CZT/Components = 3 "Cadmium" "Zinc" "Tellurium"',
@@ -171,8 +235,12 @@ def main():
               f'd:Ge/{n}/TransX = Tf/{n}X/Value mm', f's:Tf/{n}X/Function = "Step"', f'dv:Tf/{n}X/Times = {Ntot} {times} s', f'dv:Tf/{n}X/Values = {Ntot} {xs} mm',
               f'd:Ge/{n}/TransZ = Tf/{n}Z/Value mm', f's:Tf/{n}Z/Function = "Step"', f'dv:Tf/{n}Z/Times = {Ntot} {times} s', f'dv:Tf/{n}Z/Values = {Ntot} {zs} mm',
               f'd:Ge/{n}/RotY = Tf/{n}R/Value deg', f's:Tf/{n}R/Function = "Step"', f'dv:Tf/{n}R/Times = {Ntot} {times} s', f'dv:Tf/{n}R/Values = {Ntot} {rs} deg']
-    L += ['s:Gr/View/Type = "OpenGL"', 'd:Gr/View/Theta = 62 deg', 'd:Gr/View/Phi = 26 deg', 'u:Gr/View/Zoom = 1.1',
-          'b:Ts/UseQt = "True"', 'b:Ts/PauseBeforeQuit = "True"']
+    if a.acquire:
+        L += acquire_block(N, sysd, a)
+    else:
+        L += ['s:Gr/View/Type = "OpenGL"', 'd:Gr/View/Theta = 62 deg', 'd:Gr/View/Phi = 26 deg',
+              'u:Gr/View/Zoom = 1.1',
+              'b:Ts/UseQt = "True"', 'b:Ts/PauseBeforeQuit = "True"']
     open(a.out, "w").write("\n".join(L) + "\n")
     print(f"{a.out}: {a.system}, {N} detectors, docked radii {min(Rc):.0f}-{max(Rc):.0f} mm "
           f"(contour {'ellipse' if a.ellipse else 'DICOM @axial-frac '+str(a.axial_frac)}), {Ntot} motion steps")

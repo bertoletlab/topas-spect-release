@@ -7,8 +7,23 @@
 #
 # This example runs the timeline over 4 half-lives of 177Lu (T1/2 = 6.647 d) to make the decay
 # visible: the histories per run halve each bin (20000, 10000, 5000, 2500).
+#
+# NOTE ON THE ALUMINIUM WINDOW. A decay source emits betas, conversion electrons and alphas
+# alongside the gammas. In a vacuum world those charged particles travel in straight lines and
+# deposit their full kinetic energy in a bare crystal, which no real camera would record: every
+# gamma camera has a metal entrance window in front of the scintillator. Without the 2 mm Al
+# window below, this deck scores 5.8 percent charged particles for 177Lu, and for 225Ac it scores
+# alphas directly, giving deposits up to 25.6 MeV and 1.2 percent of counts above 3 MeV. Keep the
+# window whenever the source emits charged particles.
+#
+# REQUIRES OpenTOPAS with commit 404fe33 (at-rest primary momentum) or newer. On arm64 builds
+# without it, GenericIon momentum can evaluate to NaN for some nuclides, and every decay then
+# happens on the source volume's +z surface instead of through its volume. 90Y is affected;
+# 177Lu and 225Ac are not. Self-test: score a vertex-tagged phase space and confirm the decay
+# vertices fill the source volume.
 
 i:Ts/NumberOfThreads = 0
+i:Ts/ShowHistoryCountAtInterval = 2000   # one progress line per N histories, not one per history
 sv:Ph/Default/Modules = 2 "g4em-penelope" "g4radioactivedecay"
 
 d:Ge/World/HLX = 200. mm
@@ -25,6 +40,16 @@ s:Ge/Organ/Type   = "TsSphere"
 s:Ge/Organ/Parent = "World"
 s:Ge/Organ/Material = "G4_WATER"
 d:Ge/Organ/RMax   = 20. mm
+
+# aluminium entrance window: stops escaping betas, conversion electrons and alphas before the
+# crystal, the way a real camera's housing does. See the note at the top of this file.
+s:Ge/Window/Type     = "TsBox"
+s:Ge/Window/Parent   = "World"
+s:Ge/Window/Material = "G4_Al"
+d:Ge/Window/HLX = 120. mm
+d:Ge/Window/HLY = 120. mm
+d:Ge/Window/HLZ = 1. mm
+d:Ge/Window/TransZ = 93. mm
 
 # a NaI detector slab to record the emitted gamma spectrum
 s:Ge/Det/Type   = "TsBox"

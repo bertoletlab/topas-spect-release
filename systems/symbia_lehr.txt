@@ -1,7 +1,16 @@
 # Siemens Symbia, LEHR (Low-Energy High-Resolution) collimator + NaI crystal.
-# Validated: absolute LEHR sensitivity 8.6e-5 vs published 9.1e-5 counts/decay at 10 cm
-# (ratio 0.95); see docs/validation.md.
-# Geometry (hex, flat-to-flat) 1.11/0.16/24.05 mm. Sources: Dong 2018 (MCNP5, Symbia T);
+# Sensitivity at 10 cm: 7.5e-5 counts/decay as this preset builds the holes, against the 9.1e-5
+# reference (ratio 0.82); 1.07e-4 (ratio 1.18) if the holes are built hexagonal. See
+# docs/validation.md section 3, which records why the previously quoted ratio of 0.95 was two
+# compensating errors.
+# Geometry 1.11/0.16/24.05 mm. NOTE: the real Symbia LEHR collimator is HEXAGONAL holes on a
+# hexagonal lattice, and the dimensions above are its flat-to-flat values, but this preset sets
+# neither HoleShape nor Lattice and therefore builds ROUND holes on a SQUARE lattice. That is 1.40x
+# less sensitive, since sensitivity scales as (open fraction) x (hole area). Add
+#   s:Ge/Collim/HoleShape = "Hex"
+#   s:Ge/Collim/Lattice   = "Hex"
+# in the including deck to model the real hole shape, and remember that a hexagonal lattice needs
+# about 1.155x more ROWS than columns to cover the same crystal. Sources: Dong 2018 (MCNP5, Symbia T);
 # Rodrigues 2007 (Geant4, e.cam); Asmi 2019. Reliability B (Siemens collimator geometry is
 # vendor-proprietary; published values are third-party MC reconstructions).
 # See research/knowledge/spect-collimator-geometry/.

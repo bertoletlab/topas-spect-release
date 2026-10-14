@@ -1,8 +1,22 @@
 # Full-MC system example: absolute system sensitivity, Siemens Symbia LEHR + NaI at 10 cm.
 #
-# Selects the validated scanner geometry with a single IncludeFile, then adds the world,
-# physics, source, scorer, detector extents and placements. Reproduces the validated result
-# (8.6e-5 vs published 9.1e-5 counts/decay, ratio 0.95; docs/validation.md).
+# Selects the scanner geometry with a single IncludeFile, then adds the world, physics, source,
+# scorer, detector extents and placements. Result: 7.5e-5 counts/decay against the 9.1e-5 reference,
+# ratio 0.82 (docs/validation.md section 3).
+#
+# THIS DECK PREVIOUSLY REPORTED 8.6e-5 AND A RATIO OF 0.95. That agreement was two errors
+# cancelling, and both are now corrected or documented:
+#   1. NHolesX/Y were 120, giving a 152.4 mm collimator over a 180 mm crystal. An obliquely incident
+#      photon aimed at the crystal edge then crossed only 21 percent of the collimator length before
+#      leaving through its side, reaching the detector through far less lead than a full-length path.
+#      Measured contribution: +15 percent. It is peripheral septal penetration rather than photons
+#      bypassing the collimator, which an opaque-septa control confirms, being insensitive to the
+#      same coverage change. Hole counts are now 158 x 158, a 10.3 mm margin on both axes.
+#   2. The preset builds ROUND holes on a SQUARE lattice; the real Symbia LEHR is hexagonal on a
+#      hexagonal lattice. Sensitivity scales as (open fraction) x (hole area), so hex-on-hex is
+#      1.40x this geometry. Measured on this deck: round 7.4870e-5, hex 1.0722e-4, ratio 1.432
+#      against 1.404 derived. The hole shape is NOT changed here, since that is a modelling choice
+#      rather than a defect, but the 0.82 ratio is a round-hole number and must be read as one.
 #
 # In post-processing, count the events whose deposited energy falls in the Tc-99m photopeak
 # window (126.5-154.6 keV) and divide by NumberOfHistoriesInRun to get counts/decay.
@@ -13,6 +27,7 @@
 IncludeFile = ../../systems/symbia_lehr.txt      # Ma/Lead, Ma/NaI, Ge/Collim, Ge/Crystal (spec)
 
 i:Ts/NumberOfThreads = 0
+i:Ts/ShowHistoryCountAtInterval = 20000000   # one progress line per N histories, not one per history
 b:Ge/QuitIfOverlapDetected = "True"
 
 sv:Ph/Default/Modules     = 1 "g4em-penelope"
@@ -25,9 +40,11 @@ d:Ge/World/HLY = 250. mm
 d:Ge/World/HLZ = 200. mm
 s:Ge/World/Material = "Vacuum"
 
-# Detector extents + placement (the spec-fixed hole/septum/length/material come from the preset)
-i:Ge/Collim/NHolesX = 120
-i:Ge/Collim/NHolesY = 120
+# Detector extents + placement (the spec-fixed hole/septum/length/material come from the preset).
+# NHoles give a 10.3 mm collimator margin beyond the crystal on both axes, so no oblique path
+# reaches the detector through a shortened lead thickness.
+i:Ge/Collim/NHolesX = 158
+i:Ge/Collim/NHolesY = 158
 d:Ge/Collim/TransZ  = 12.025 mm            # front collimator face at z = 0
 
 d:Ge/Crystal/HLX    = 90. mm

@@ -40,6 +40,16 @@ collimator face to the focus. Each channel then tilts toward that focus:
 A converging collimator magnifies by `m = f / (f − z)` for a source at distance `z`. See
 [`converging_conebeam.txt`](https://github.com/bertoletlab/topas-spect-release/blob/main/examples/design/converging_conebeam.txt).
 
+!!! warning "Short focal lengths run out of septum"
+    Channels are built on the lattice at the collimator **mid-plane** and rotated toward the focus, so
+    neighbors come closest at the focal-side surface, and closer still as the focal length shortens.
+    Below some focal length, which depends on hole size, septal thickness and collimator length,
+    adjacent channels intersect and the geometry is physically impossible. The collimator measures the
+    inter-channel clearance across the full aperture while it builds and **aborts rather than
+    constructing overlapping channels**, reporting the minimum clearance and the minimum local septal
+    thickness it found. If a converging deck refuses to build, lengthen the focal length, thicken the
+    septa or shorten the collimator; the printed clearance tells you how far you are from feasible.
+
 ### Pinhole and multi-pinhole: `TsPinholeCollimator`
 
 An absorber plate with one or more knife-edge (double-cone) apertures. The parent volume (vacuum)

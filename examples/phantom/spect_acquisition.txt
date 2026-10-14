@@ -25,6 +25,7 @@
 IncludeFile = ../../phantoms/scenarios/lu177_psma.txt     # fixed phantom: Ge/Torso + organs/lesions + sources
 
 i:Ts/NumberOfThreads = 4
+i:Ts/ShowHistoryCountAtInterval = 20000   # one progress line per N histories, not one per history
 
 # --- Acquisition timeline: 6 views over 5 min, 30 s/view, orbit 0 -> 180 deg ---
 i:Tf/NumberOfSequentialTimes = 6

@@ -66,11 +66,31 @@ gantry rotation, plus the panel's tangential extent), so it clears the body thro
 This is checked automatically: the generated geometry builds with zero overlaps, and the regression
 tests assert that no detector penetrates the body at any gantry angle.
 
+## Geometry only, or geometry plus an acquisition
+
+By default the deck carries geometry and motion and no radiation, which is what you want to watch the
+motion in the viewer and confirm the docking.
+
+`--acquire` writes a deck that also records projections: a volumetric 99mTc background in the body
+phantom, two hot lesions, and one `StarGuideProjection` scorer per column, pixelated from the panel
+dimensions. The shipped result for the StarGuide ring is
+[`examples/acquisition/starguide_ring_acquire.txt`](https://github.com/bertoletlab/topas-spect-release/blob/main/examples/acquisition/starguide_ring_acquire.txt).
+
+```
+python3 tools/make_ring_motion.py --system starguide --ellipse 150 100 \
+        --acquire --histories 200000 --out sg_acquire.txt
+```
+
+`--histories` is the background count **per time step**, and each lesion takes five percent of it, so
+the deck's total scales with the number of motion steps. `--pixel` sets the detector pitch, which
+decides the pixel counts the scorers declare. The scorers accumulate over the whole timeline; to score
+the ACQUIRE phase alone, pass `--napproach 0`.
+
 ## Visualizing and running
 
 The generated deck is an ordinary OpenTOPAS parameter file. Open it in the Qt viewer to watch the motion,
 or include it in an acquisition. To run it headless, strip the viewer lines and set
-`Ts/PauseBeforeQuit = "False"`.
+`Ts/PauseBeforeQuit = "False"`; an `--acquire` deck already runs headless.
 
 ## Verifying it yourself
 

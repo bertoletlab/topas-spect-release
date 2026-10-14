@@ -24,6 +24,7 @@
 # Run from this example's folder:  topas native_vr.txt
 
 i:Ts/NumberOfThreads = 4
+i:Ts/ShowHistoryCountAtInterval = 200000   # one progress line per N histories, not one per history
 sv:Ph/Default/Modules = 1 "g4em-penelope"
 d:Ph/Default/CutForGamma    = 0.05 mm
 d:Ph/Default/CutForElectron = 0.05 mm

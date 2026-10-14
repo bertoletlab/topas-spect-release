@@ -26,7 +26,7 @@ source, and scorer for your particular study.
 A photon that reaches the camera passes through two stages, and you choose how much of each to
 simulate:
 
-1. **Collimation.** A parallel-hole collimator only passes photons travelling nearly parallel to its
+1. **Collimation.** A parallel-hole collimator only passes photons traveling nearly parallel to its
    holes; everything else is absorbed in the septa. This is what gives SPECT its direction
    information, and why it throws away ~99.98% of emitted photons. OpenTOPAS-SPECT models the holes and
    septa explicitly, so the transport captures septal penetration and scatter directly.

@@ -3,8 +3,25 @@
 # point in front of the collimator, magnifying the image (m = f / (f - z)). Set only one focal
 # length for a fan-beam (focal line); use a negative value to diverge.
 # Run from this example's folder: topas converging_conebeam.txt
+#
+# CRYSTAL SIZE, corrected 2026-09-29: +-56 mm, was +-120 mm. The 90 x 90 hex channel grid shadows
+# +-66.4 mm, so a +-120 mm crystal left most of its area unshielded and any whole-crystal total
+# counted photons that never passed through a channel. The magnified image of the off-axis point below
+# lands at about 40 mm, so it still fits comfortably. Enlarging the collimator instead would have
+# worked, at 152 x 177 channels and roughly three times the transport cost, which is not worth it for
+# a geometry demonstration. If you enlarge the crystal, enlarge the channel grid with it, and note
+# that a HEXAGONAL lattice needs about 1.155x more rows than columns for the same coverage.
+#
+# FocalLengthX/Y must be long enough, for a given NHoles/HoleDiameter/SeptalThickness grid, that the
+# outermost channels' tilt does not make them intersect their neighbours (a geometric constraint, not
+# a software limitation: TsParallelHoleCollimator enforces it at construction time and raises a clear
+# error, with the achieved clearance, if violated). A shorter FocalLengthX/Y than this file's 350 mm
+# is NOT safe at this grid's HoleDiameter/SeptalThickness -- e.g. 200 mm fails by about -0.11 mm of
+# inter-channel clearance. Widen SeptalThickness and/or lengthen FocalLengthX/Y if you need a shorter
+# focus (higher magnification) than this example.
 
 i:Ts/NumberOfThreads = 1
+i:Ts/ShowHistoryCountAtInterval = 200000   # one progress line per N histories, not one per history
 b:Ge/QuitIfOverlapDetected = "True"
 
 sv:Ma/Lead/Components = 1 "Lead"
@@ -33,15 +50,15 @@ i:Ge/Collim/NHolesY = 90
 s:Ge/Collim/HoleShape = "Hex"
 s:Ge/Collim/Lattice   = "Hex"
 s:Ge/Collim/Hole/Material = "Vacuum"
-d:Ge/Collim/FocalLengthX = 200. mm      # cone-beam: focus 200 mm in front (magnifies by ~2 at 10 cm)
-d:Ge/Collim/FocalLengthY = 200. mm
+d:Ge/Collim/FocalLengthX = 350. mm      # cone-beam: focus 350 mm in front (magnifies by ~2 at 17.5 cm)
+d:Ge/Collim/FocalLengthY = 350. mm
 d:Ge/Collim/TransZ = 17.5 mm            # front face at z = 0
 
 s:Ge/Crystal/Type     = "TsBox"
 s:Ge/Crystal/Parent   = "World"
 s:Ge/Crystal/Material = "NaI"
-d:Ge/Crystal/HLX = 120. mm
-d:Ge/Crystal/HLY = 120. mm
+d:Ge/Crystal/HLX = 56. mm
+d:Ge/Crystal/HLY = 56. mm
 d:Ge/Crystal/HLZ = 4.75 mm
 d:Ge/Crystal/TransZ = 40.0 mm
 
@@ -52,7 +69,7 @@ d:Ge/Src/HLX = 0.01 mm
 d:Ge/Src/HLY = 0.01 mm
 d:Ge/Src/HLZ = 0.01 mm
 d:Ge/Src/TransX = 20. mm                # off-axis point: its image is magnified by ~2
-d:Ge/Src/TransZ = -100. mm
+d:Ge/Src/TransZ = -175. mm
 s:So/Beam/Type = "Isotropic"
 s:So/Beam/Component = "Src"
 s:So/Beam/BeamParticle = "gamma"
