@@ -72,8 +72,8 @@ b:Sc/FD/IncludeSeptalPenetration = "{pen}"
 {mu_line}
 d:Sc/FD/CZTThickness = 9.5 mm
 b:Sc/FD/IncludeCrystalEfficiency = "True"
-dv:Sc/FD/CrystalEfficiencyEnergies = 6 113.0 140.5 208.0 218.0 250.0 440.0 keV
-uv:Sc/FD/CrystalEfficiencyValues   = 6 0.944 0.862 0.545 0.505 0.400 0.149
+dv:Sc/FD/CrystalEfficiencyEnergies = 14 113.0 140.5 159.0 171.0 200.0 208.0 218.0 245.0 250.0 300.0 364.5 440.0 500.0 1000.0 keV
+uv:Sc/FD/CrystalEfficiencyValues   = 14 0.944 0.862 0.7742 0.7137 0.5761 0.545 0.505 0.4147 0.400 0.2926 0.2065 0.149 0.1194 0.0417
 dv:Sc/FD/ResolutionEnergies        = 6 100.0 140.5 208.0 300.0 440.0 1000.0 keV
 uv:Sc/FD/ResolutionFractionalFWHM  = 6 0.0653 0.0550 0.0460 0.0383 0.0317 0.0210
 d:Sc/FD/PixelSizeX = 4.0 mm

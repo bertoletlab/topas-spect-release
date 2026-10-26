@@ -32,6 +32,19 @@ within the window), from 10^6 photons:
 Trends are physical: efficiency falls with energy; CZT exceeds NaI at matched
 energy (higher density and effective Z despite the thinner crystal).
 
+The forced-detection scorer's compiled default is a denser NaI 9.5 mm table (normal incidence, 20%
+window, unsmeared, 14 points). The six points above had nothing between 250 and 440 keV, and linear
+interpolation across that gap read 14.1% high at 300 keV and 20.5% high at 364.5 keV (v1.1.0 and
+earlier). The default reproduces the six tabulated NaI points above to 0.4%:
+
+| keV | 113 | 140.5 | 159 | 171 | 200 | 208 | 218 | 245 | 250 | 300 | 364.5 | 440 | 500 | 1000 |
+|-----|:---:|:-----:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:-----:|:---:|:---:|:----:|
+| NaI 9.5 mm | 0.944 | 0.862 | 0.7742 | 0.7137 | 0.5761 | 0.545 | 0.505 | 0.4147 | 0.400 | 0.2926 | 0.2065 | 0.149 | 0.1194 | 0.0417 |
+
+It is for 9.5 mm NaI only. For any other crystal, declare `CrystalEfficiencyEnergies` and
+`CrystalEfficiencyValues` yourself; the scorer cannot tell which crystal your deck uses. Outside
+113-1000 keV the end values are held constant (a one-time warning is printed above the table).
+
 Note: Geant4 scores energy *deposition*. The CZT low-energy tail from incomplete
 charge collection (hole tailing / charge sharing) is a charge-transport effect and
 is not included; it is applied as a separate empirical model where required.

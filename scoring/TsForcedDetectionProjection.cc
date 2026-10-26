@@ -39,6 +39,7 @@
 #include "G4StepPoint.hh"
 #include "G4Track.hh"
 #include "G4Gamma.hh"
+#include "G4Exception.hh"
 #include "G4SystemOfUnits.hh"
 #include "Randomize.hh"
 
@@ -60,6 +61,49 @@ TsForcedDetectionProjection::TsForcedDetectionProjection(
 	G4String outFileName, G4bool isSubScorer)
 : TsVNtupleScorer(pM, mM, gM, scM, eM, scorerName, quantity, outFileName, isSubScorer)
 {
+	// --- Parallel-hole only: refuse a converging or diverging collimator ---
+	// The model below (Metz aperture autocorrelation and the ray-traced septal penetration) assumes
+	// every hole axis is parallel to the surface normal. The scorer has no focal-length concept, so
+	// paired with a converging, diverging or fan-beam collimator it would quietly model parallel
+	// holes. Two ways to be caught: the scorer is given FocalLengthX/FocalLengthY (the names the
+	// collimator uses, so a deck that copies its collimator parameters across brings them along),
+	// or the same deck defines a TsParallelHoleCollimator with a nonzero focal length.
+	{
+		G4String offender;
+		for (const char* axis : {"FocalLengthX", "FocalLengthY"}) {
+			if (fPm->ParameterExists(GetFullParmName(axis)) &&
+				fPm->GetDoubleParameter(GetFullParmName(axis), "Length") != 0.0)
+				offender = GetFullParmName(axis);
+		}
+		if (offender.empty()) {
+			std::vector<G4String> geoTypes;
+			fPm->GetParameterNamesBracketedBy("Ge/", "/Type", &geoTypes);
+			for (const G4String& typeParm : geoTypes) {
+				G4String type = fPm->GetStringParameter(typeParm);
+				G4StrUtil::to_lower(type);
+				if (type != "tsparallelholecollimator") continue;
+				G4String base = typeParm.substr(0, typeParm.size() - 4);  // strip "Type"
+				for (const char* axis : {"FocalLengthX", "FocalLengthY"}) {
+					G4String name = base + axis;
+					if (fPm->ParameterExists(name) && fPm->GetDoubleParameter(name, "Length") != 0.0)
+						offender = name;
+				}
+			}
+		}
+		if (!offender.empty()) {
+			G4ExceptionDescription ed;
+			ed << "Forced detection supports parallel-hole geometry only, and " << offender
+			   << " is nonzero (a converging, diverging or fan-beam collimator).\n"
+			   << "TsForcedDetectionProjection has no focal-length model and would silently score "
+			   << "parallel holes, giving the wrong geometric acceptance, field of view and "
+			   << "septal path.\n"
+			   << "Use full transport (the TsEDepSpectrum scorer behind the physical collimator) "
+			   << "for converging or diverging collimators.";
+			G4Exception("TsForcedDetectionProjection::TsForcedDetectionProjection",
+						"SPECT_FD_NonParallelCollimator", FatalException, ed);
+		}
+	}
+
 	// --- Collimator geometry ---
 	fHoleDiameter = 1.08 * mm;
 	if (fPm->ParameterExists(GetFullParmName("HoleDiameter")))
@@ -238,8 +282,15 @@ TsForcedDetectionProjection::TsForcedDetectionProjection(
 		for (G4int i = 0; i < nEffPoints; i++)
 			fCrystalEffEnergies.push_back(energies[i] / keV);
 	} else {
-		// NaI 9.5 mm, 20% photopeak window (docs/validation.md section 1)
-		fCrystalEffEnergies = {113.0, 140.5, 208.0, 218.0, 250.0, 440.0};
+		// DEFAULT TABLE: 9.5 mm NaI ONLY (normal incidence, 20% photopeak window, unsmeared;
+		// full Geant4 transport of mono-energetic photons into a bare crystal slab). A deck with
+		// another crystal (thickness, CZT, LaBr3, ...) MUST declare its own
+		// CrystalEfficiencyEnergies/CrystalEfficiencyValues; nothing here checks the crystal.
+		// 14 points, measured 2026-10-26. The earlier 6-point table (113/140.5/208/218/250/440 keV)
+		// had nothing between 250 and 440 keV, and linear interpolation across that gap read 14.1%
+		// high at 300 keV and 20.5% high at 364.5 keV. Outside 113-1000 keV the end values are held.
+		fCrystalEffEnergies = {113.0, 140.5, 159.0, 171.0, 200.0, 208.0, 218.0,
+							   245.0, 250.0, 300.0, 364.5, 440.0, 500.0, 1000.0};
 	}
 
 	if (fPm->ParameterExists(GetFullParmName("CrystalEfficiencyValues"))) {
@@ -248,7 +299,8 @@ TsForcedDetectionProjection::TsForcedDetectionProjection(
 		for (G4int i = 0; i < nEffVals; i++)
 			fCrystalEffValues.push_back(effs[i]);
 	} else {
-		fCrystalEffValues = {0.944, 0.862, 0.545, 0.505, 0.400, 0.149};
+		fCrystalEffValues = {0.944, 0.862, 0.7742, 0.7137, 0.5761, 0.545, 0.505,
+							 0.4147, 0.400, 0.2926, 0.2065, 0.149, 0.1194, 0.0417};
 	}
 
 	if (fCrystalEffEnergies.size() != fCrystalEffValues.size()) {
@@ -1095,7 +1147,9 @@ G4double TsForcedDetectionProjection::InterpolateCrystalEfficiency(G4double ener
 	// Linear interpolation over the tabulated photopeak-window efficiency
 	// (docs/validation.md section 1, or user-supplied CrystalEfficiencyEnergies/
 	// CrystalEfficiencyValues), with the endpoints held constant outside the
-	// tabulated range -- same clamping convention as InterpolateFWHM above.
+	// tabulated range -- same clamping convention as InterpolateFWHM above. Above the last
+	// point the clamp warns once per thread; below the first it is silent. The compiled default
+	// spans 113-1000 keV (9.5 mm NaI only).
 	if (fCrystalEffEnergies.size() < 2)
 		return fCrystalEffValues.empty() ? 1.0 : fCrystalEffValues[0];
 
@@ -1116,8 +1170,8 @@ G4double TsForcedDetectionProjection::InterpolateCrystalEfficiency(G4double ener
 				   << fCrystalEffEnergies.back() << " keV, so the efficiency is held at "
 				   << fCrystalEffValues.back() << " instead of falling." << G4endl
 				   << "  Photopeak efficiency drops steeply with energy: for 9.5 mm NaI a table"
-				   << " ending at 440 keV returns 0.149 at 1 MeV, where the measured value is"
-				   << " 0.042, so sensitivity comes out 3.6 times too high." << G4endl
+				   << " ending at 440 keV would return 0.149 at 1 MeV, where the measured value is"
+				   << " 0.042, so sensitivity would come out 3.6 times too high." << G4endl
 				   << "  Extend CrystalEfficiencyEnergies and CrystalEfficiencyValues to cover"
 				   << " the photons in this run." << G4endl;
 		}

@@ -59,6 +59,22 @@ collimator; `PixelSizeX/Y` and `NPixelsX/Y` the detector; `PenetrationModel` sel
 treatment and defaults to `RayTrace`; `MinTransmissionFraction` floors the transmission a ray may
 carry and defaults to `1e-6`, which keeps the wide-angle penetration tail while bounding the table.
 
+!!! danger "Parallel-hole collimators only"
+    `TsForcedDetectionProjection` has no focal-length concept: its geometric acceptance and septal
+    path assume every hole axis is parallel to the surface normal. Paired with a converging,
+    diverging or fan-beam collimator it would silently model parallel holes. Since v1.1.1 it refuses:
+    initialization fails with a `G4Exception` (`SPECT_FD_NonParallelCollimator`) if the scorer is given
+    a nonzero `FocalLengthX` or `FocalLengthY` (the names `TsParallelHoleCollimator` uses, so copying
+    the collimator's parameters brings them along), or if the same deck defines a
+    `TsParallelHoleCollimator` with a nonzero focal length. Use full transport (`TsEDepSpectrum` behind
+    the physical collimator) for converging or diverging collimators.
+
+!!! warning "Crystal efficiency default is for 9.5 mm NaI"
+    The photopeak detection probability defaults to a 14-point table for 9.5 mm NaI (113-1000 keV, see
+    `docs/validation.md` section 1). For any other crystal, set `CrystalEfficiencyEnergies` and
+    `CrystalEfficiencyValues`. Outside the table range the end values are held constant, with a
+    warning above the last point.
+
 !!! warning "The scoring surface is the collimator MID-PLANE"
     `TsForcedDetectionProjection` measures source distance to the mid-plane of the collimator it
     models, not to its entrance face. Place the surface at `CollimatorLength/2 + crystal/2` behind

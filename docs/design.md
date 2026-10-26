@@ -30,7 +30,7 @@ A regular hole array. The parameters (see the
 (`Round`/`Hex`/`Square`), `Lattice` (`Square`/`Hex`), `Material`, and `Hole/Material`.
 
 To make the collimator converge, set `FocalLengthX` and/or `FocalLengthY`, the distance from the
-collimator face to the focus. Each channel then tilts toward that focus:
+collimator's mid-plane (half its length behind the front face) to the focus. Each channel then tilts toward that focus:
 
 - both finite gives a **cone-beam** collimator converging to a point;
 - one finite gives a **fan-beam** collimator with a focal line;

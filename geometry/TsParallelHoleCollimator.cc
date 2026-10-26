@@ -18,9 +18,9 @@
 //   Lattice           "Square" (default) or "Hex" (triangular centres, offset alternate
 //                     rows, row spacing = pitch * sqrt(3)/2)
 //   FocalLengthX,     0 (default) = parallel holes. A finite value tilts each channel so its axis
-//   FocalLengthY      passes through a focus at that collimator-face-to-focus distance: a focus in
+//   FocalLengthY      passes through a focus at that distance from the collimator MID-PLANE: a focus in
 //                     BOTH axes = cone-beam (converging), one axis = fan-beam (focal line), and a
-//                     negative value = diverging. Fan/cone magnify (m = f/(f - z)).
+//                     negative value = diverging. Fan/cone magnify (m = f/(f - z), z from the mid-plane).
 //   Hole/Material     channel fill material (e.g. "Vacuum")
 //
 // Defaults are Round holes on a Square lattice, which is the configuration used for the
@@ -34,6 +34,8 @@
 #include "G4Box.hh"
 #include "G4Tubs.hh"
 #include "G4Polyhedra.hh"
+#include "G4IntersectionSolid.hh"
+#include "G4Transform3D.hh"
 #include "G4VSolid.hh"
 #include "G4LogicalVolume.hh"
 #include "G4VPhysicalVolume.hh"
@@ -43,6 +45,7 @@
 #include <cmath>
 #include <algorithm>
 #include <map>
+#include <utility>
 #include <vector>
 #include <limits>
 #include <sstream>
@@ -129,8 +132,9 @@ G4VPhysicalVolume* TsParallelHoleCollimator::Construct()
 
 	// Circumscribed radius of a single hole's 2D cross-section: the worst-case (i.e. safe/
 	// conservative, never an underestimate) distance from the channel axis to any point on its
-	// cross-section, regardless of the azimuthal direction of the tilt. Used below to guarantee a
-	// tilted channel's end-cap rim never protrudes past the envelope face.
+	// cross-section, regardless of the azimuthal direction of the tilt. Used below to build each
+	// tilted channel long enough that, once its ends are cut by the face planes, the whole bore
+	// cross-section spans the slab (the end-cap rim lies outside the slab on both faces).
 	//   Round:  radius itself.
 	//   Square: half-diagonal (corner), not the half-side (flat) -- the corner is what can poke
 	//           through the face when the tilt axis is not aligned with a flat.
@@ -139,18 +143,21 @@ G4VPhysicalVolume* TsParallelHoleCollimator::Construct()
 					   : squareHole ? (fHoleDiameter / 2.0) * std::sqrt(2.0)
 					   : (fHoleDiameter / 2.0);
 
-	// Exact channel half-length for a channel whose axis is tilted by (thetaX, thetaY) -- rotation
+	// Uncut channel half-length for a channel whose axis is tilted by (thetaX, thetaY) -- rotation
 	// about Y by thetaX composed with rotation about X by thetaY, matching the placement rotation
 	// built below. The composed tilt of the channel axis away from the mother's z-axis has
-	// cos(thetaEff) = cos(thetaX)*cos(thetaY) EXACTLY (this is not the same as, and for finite
-	// angles is smaller than, the small-angle Pythagorean approximation cos(sqrt(thetaX^2+thetaY^2))
-	// that this code used before). The channel's end-cap rim reaches envelopeHLZ exactly when
-	//   holeHalfZ * cos(thetaEff) + holeCircumRadius * sin(thetaEff) = envelopeHLZ.
+	// cos(thetaEff) = cos(thetaX)*cos(thetaY) EXACTLY. A channel is built this long so that its
+	// end-cap rim lies on or beyond the envelope face, i.e.
+	//   holeHalfZ * cos(thetaEff) - holeCircumRadius * sin(thetaEff) = envelopeHLZ,
+	// and is then cut flush by the two face planes (see GetHoleLogical). The earlier fix shortened
+	// the channel until the rim TOUCHED the face (the same expression with the opposite sign), which
+	// left the rest of the end cap inside the slab: a lead wedge over every tilted channel's
+	// entrance and exit, about holeCircumRadius*sin(thetaEff) thick and largest at the field edge.
 	// For thetaX = thetaY = 0 this reduces exactly to envelopeHLZ (parallel-hole geometry untouched).
-	auto SafeHoleHalfZ = [&](G4double thetaX, G4double thetaY) -> G4double {
+	auto LongHoleHalfZ = [&](G4double thetaX, G4double thetaY) -> G4double {
 		G4double cosEff = std::cos(thetaX) * std::cos(thetaY);
 		G4double sinEff = std::sqrt(std::max(0.0, 1.0 - cosEff * cosEff));
-		return (envelopeHLZ - holeCircumRadius * sinEff) / cosEff;
+		return (envelopeHLZ + holeCircumRadius * sinEff) / cosEff;
 	};
 
 	// Worst-case (largest) tilt occurs at the outermost hole (largest |xPos|, |yPos| simultaneously);
@@ -160,8 +167,12 @@ G4VPhysicalVolume* TsParallelHoleCollimator::Construct()
 	G4double cornerThetaY = (fFocalLengthY != 0.0) ? std::atan(maxCentreY / fFocalLengthY) : 0.0;
 	G4double cornerCosEff = std::cos(cornerThetaX) * std::cos(cornerThetaY);
 	G4double cornerSinEff = std::sqrt(std::max(0.0, 1.0 - cornerCosEff * cornerCosEff));
-	G4double cornerHoleHalfZ = SafeHoleHalfZ(cornerThetaX, cornerThetaY);
-	G4double tiltMargin = converging ? cornerHoleHalfZ * cornerSinEff : 0.0;
+	// A channel now runs the full face-to-face distance, so its axis moves sideways by
+	// envelopeHLZ*tan(thetaEff) between the mid-plane and a face, and its oblique footprint on the
+	// face is stretched by 1/cos(thetaEff).
+	G4double tiltMargin = converging ? envelopeHLZ * cornerSinEff / cornerCosEff
+										+ holeCircumRadius * (1.0 / cornerCosEff - 1.0)
+									 : 0.0;
 
 	// Envelope: septa slab covering the full hole grid with a half-septum margin. For the default
 	// parallel Round/Square case this reduces exactly to NHoles*pitch/2 (validated geometry).
@@ -172,37 +183,57 @@ G4VPhysicalVolume* TsParallelHoleCollimator::Construct()
 	fEnvelopeLog = CreateLogicalVolume(envelope);
 	fEnvelopePhys = CreatePhysicalVolume(fEnvelopeLog);
 
-	// Hole solids are cached by EXACT channel half-length (no rounding/quantization at all): for
-	// parallel holes every channel computes the identical bit-for-bit safeHalfZ (thetaX=thetaY=0
-	// exactly), so they all land in the one cache entry and share the one solid -- bit-for-bit the
-	// same construction as before this fix (a strict no-op for the validated, published parallel-
-	// hole geometry). For converging/diverging geometries, every channel gets its own exact safe
-	// half-length (the fix for the protrusion bug); channels that happen to compute the identical
-	// value (guaranteed by lattice mirror symmetry: cos()/atan() are exactly even/odd, so mirrored
-	// holes recompute the same double bit-for-bit) share a cached solid, and every other channel
-	// gets its own. No approximation is introduced anywhere: the length used for a given hole is
-	// always exactly its own computed safe value, never rounded up (so it can never protrude) and
-	// never rounded down beyond what it exactly is (so no artificial shortening is introduced).
-	std::map<G4double, G4LogicalVolume*> holeLogCache;
-	auto GetHoleLogical = [&](G4double safeHalfZ) -> G4LogicalVolume* {
-		auto it = holeLogCache.find(safeHalfZ);
-		if (it != holeLogCache.end()) return it->second;
-		G4double halfZ = safeHalfZ;
+	// Cutter for the tilted channels: a box whose z-faces are the slab's face planes (z = +-
+	// envelopeHLZ in the mother frame) and whose transverse size exceeds any channel. It is placed
+	// in each channel's frame with the placement rotation, which turns the mother's axes into the
+	// channel's; the face planes depend on the tilt only (the channel centre is always at z = 0), so
+	// the cut solid does not depend on the channel's x,y position. One box is shared by every channel.
+	G4double cutHalfT = 2.0 * LongHoleHalfZ(cornerThetaX, cornerThetaY) + 2.0 * holeCircumRadius;
+	G4Box* faceCutter = converging ? new G4Box("HoleFaceCut", cutHalfT, cutHalfT, envelopeHLZ) : 0;
+
+	// Channel solids are cached by tilt. A channel with no tilt (every channel of a parallel
+	// collimator, and the centre line of a fan-beam one) is the plain envelope-length solid, bit
+	// for bit the construction used before tilted channels were cut, so the validated parallel-hole
+	// geometry is unchanged and all of its channels share one solid. A tilted channel is built
+	// LongHoleHalfZ long (the uncut tube is cached by that length) and intersected with the face
+	// cutter, so its bore is cut flush to both faces: nothing protrudes past the envelope and no
+	// lead sits over the aperture. Channels on a square lattice share a tilt pair only when both
+	// angles match exactly, so most converging channels carry their own small intersection solid.
+	std::map<G4double, G4VSolid*> channelSolidCache;
+	auto GetChannelSolid = [&](G4double halfZ, const char* name) -> G4VSolid* {
+		auto it = channelSolidCache.find(halfZ);
+		if (it != channelSolidCache.end()) return it->second;
 		G4VSolid* hole;
 		if (hexHole) {
 			G4double zPlane[2] = {-halfZ, halfZ};
 			G4double rInner[2] = {0.0, 0.0};
 			G4double rOuter[2] = {fHoleDiameter / 2.0, fHoleDiameter / 2.0};   // apothem = across-flats/2
 			// phiStart = 30 deg -> pointy-top hexagon (vertical flats face the in-row neighbours).
-			hole = new G4Polyhedra("Hole", 30.0 * deg, 360.0 * deg, 6, 2, zPlane, rInner, rOuter);
+			hole = new G4Polyhedra(name, 30.0 * deg, 360.0 * deg, 6, 2, zPlane, rInner, rOuter);
 		} else if (squareHole) {
 			// HoleDiameter is the square side (flat-to-flat); half-side in x and y.
-			hole = new G4Box("Hole", fHoleDiameter / 2.0, fHoleDiameter / 2.0, halfZ);
+			hole = new G4Box(name, fHoleDiameter / 2.0, fHoleDiameter / 2.0, halfZ);
 		} else {
-			hole = new G4Tubs("Hole", 0.0, fHoleDiameter / 2.0, halfZ, 0.0, 360.0 * deg);
+			hole = new G4Tubs(name, 0.0, fHoleDiameter / 2.0, halfZ, 0.0, 360.0 * deg);
+		}
+		channelSolidCache[halfZ] = hole;
+		return hole;
+	};
+
+	std::map<std::pair<G4double, G4double>, G4LogicalVolume*> holeLogCache;
+	auto GetHoleLogical = [&](G4double thetaX, G4double thetaY, G4RotationMatrix* rot) -> G4LogicalVolume* {
+		auto key = std::make_pair(thetaX, thetaY);
+		auto it = holeLogCache.find(key);
+		if (it != holeLogCache.end()) return it->second;
+		G4VSolid* hole;
+		if (thetaX == 0.0 && thetaY == 0.0) {
+			hole = GetChannelSolid(envelopeHLZ, "Hole");
+		} else {
+			G4VSolid* longHole = GetChannelSolid(LongHoleHalfZ(thetaX, thetaY), "HoleUncut");
+			hole = new G4IntersectionSolid("Hole", longHole, faceCutter, G4Transform3D(*rot, G4ThreeVector()));
 		}
 		G4LogicalVolume* holeLog = CreateLogicalVolume("Hole", hole);
-		holeLogCache[safeHalfZ] = holeLog;
+		holeLogCache[key] = holeLog;
 		return holeLog;
 	};
 
@@ -223,7 +254,7 @@ G4VPhysicalVolume* TsParallelHoleCollimator::Construct()
 	// Per-hole central axis, as a 3D point (its untilted centre, always at local/global z = 0) and a
 	// unit direction (the local z-axis after the exact placement rotation, same closed form as
 	// above generalized off-axis: direction = (cos(thetaY)*sin(thetaX), sin(thetaY),
-	// cos(thetaX)*cos(thetaY))), plus the exact per-hole half-length used to build its solid. Used
+	// cos(thetaX)*cos(thetaY))), plus the half-length of the axis between the two faces. Used
 	// below to find the true minimum clearance between neighbouring channels ANYWHERE along their
 	// tilted length, not just at the two face planes -- a tilted channel and its similarly-tilted
 	// neighbour run nearly parallel over their full length, so their closest approach is not
@@ -249,12 +280,12 @@ G4VPhysicalVolume* TsParallelHoleCollimator::Construct()
 			frontY[iy][ix] = yPos + (-envelopeHLZ) * std::tan(thetaY) / std::cos(thetaX);
 			backY[iy][ix]  = yPos + envelopeHLZ * std::tan(thetaY) / std::cos(thetaX);
 
-			G4double safeHalfZ = SafeHoleHalfZ(thetaX, thetaY);
+			G4double faceToFaceHalfLen = envelopeHLZ / (std::cos(thetaX) * std::cos(thetaY));
 			axisPos[iy][ix] = G4ThreeVector(xPos, yPos, 0.0);
 			axisDir[iy][ix] = G4ThreeVector(std::cos(thetaY) * std::sin(thetaX),
 											 std::sin(thetaY),
 											 std::cos(thetaX) * std::cos(thetaY));
-			axisHalfLen[iy][ix] = safeHalfZ;
+			axisHalfLen[iy][ix] = faceToFaceHalfLen;
 
 			G4ThreeVector* pos = new G4ThreeVector(xPos, yPos, 0.0);
 			RegisterTranslation(pos);
@@ -269,18 +300,16 @@ G4VPhysicalVolume* TsParallelHoleCollimator::Construct()
 				RegisterRotation(rot);
 			}
 
-			// Each channel gets ITS OWN exact safe half-length -- the dominant fix. Previously every
-			// channel reused a single length sized from the single worst-case (outermost) hole,
-			// which made every less-tilted channel protrude through the envelope faces.
-			G4LogicalVolume* holeLog = GetHoleLogical(safeHalfZ);
+			// Each channel is cut flush to the two faces along its own tilt.
+			G4LogicalVolume* holeLog = GetHoleLogical(thetaX, thetaY, rot);
 
 			CreatePhysicalVolume("Hole", copyNo, true, holeLog, rot, pos, fEnvelopePhys);
 			copyNo++;
 		}
 	}
 
-	// Guard-rail diagnostic. The fix above guarantees (by construction) that no channel's end-cap
-	// rim can protrude past the envelope's z-faces. It does NOT, by itself, guarantee that adjacent
+	// Guard-rail diagnostic. Cutting each channel at the face planes guarantees (by construction)
+	// that no channel protrudes past the envelope's z-faces. It does NOT, by itself, guarantee that adjacent
 	// channels don't intersect EACH OTHER -- and, importantly, a tilted channel and its similarly-
 	// tilted neighbour run nearly parallel over their full length, so their closest approach is not
 	// guaranteed to fall at either face; it can fall anywhere along the shared length (confirmed by
@@ -291,7 +320,7 @@ G4VPhysicalVolume* TsParallelHoleCollimator::Construct()
 	//  (1) an intuitive, face-only "local septal thickness" estimate (centre-to-centre spacing at
 	//      each face minus the nominal HoleDiameter) -- informational, reported for both faces.
 	//  (2) the ENFORCED check: model each channel as a "capsule" (its central axis segment, from
-	//      rim to rim, thickened by the hole's nominal across-flats width) and compute the true
+	//      face to face, thickened by the hole's nominal across-flats width) and compute the true
 	//      minimum distance between the two finite axis SEGMENTS (not infinite lines, and not
 	//      evaluated only at the two faces) using the standard closest-point-between-two-segments
 	//      construction. Two channels cannot intersect if this axis-segment distance exceeds the sum
@@ -388,7 +417,7 @@ G4VPhysicalVolume* TsParallelHoleCollimator::Construct()
 	G4cout << "TsParallelHoleCollimator: Created " << copyNo << " " << shapeName << " holes ("
 		   << fNHolesX << " x " << fNHolesY << ") on a " << (hexLattice ? "hex" : "square")
 		   << " lattice, " << focusName << ", pitch = " << pitch / mm << " mm, "
-		   << holeLogCache.size() << " unique channel length(s)" << G4endl;
+		   << holeLogCache.size() << " unique channel solid(s)" << G4endl;
 	if (converging) {
 		G4cout << "TsParallelHoleCollimator: minimum inter-channel clearance (enforced) = "
 			   << minAxisClearance / mm << " mm; minimum estimated septal thickness (informational) = "

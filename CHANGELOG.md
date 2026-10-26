@@ -6,6 +6,65 @@ All notable changes to `topas-spect` are documented here. The format follows
 
 ## [Unreleased]
 
+## [1.1.1] - 2026-10-26
+
+The concept DOI, 10.5281/zenodo.21251782, resolves to the newest version. The version DOI for this
+release is minted when it is archived.
+
+### Fixed
+- **The forced-detection crystal-efficiency default read 14 percent high at 300 keV and 20.5 percent
+  high at 364.5 keV.** The compiled `TsForcedDetectionProjection` default had six points (113, 140.5,
+  208, 218, 250 and 440 keV) and nothing between 250 and 440 keV, so linear interpolation across that
+  gap ran above the real, convex efficiency curve. At 364.5 keV it returned 0.2487 against a measured
+  0.2065, and forced-detection sensitivity for any deck windowed in that band (I-131 at 364.5 keV,
+  Ga-67 at 300 keV) was high by the same factor. The default is now a 14-point table measured by full
+  Geant4 transport into a bare 9.5 mm NaI slab (normal incidence, 20 percent window, unsmeared):
+  113, 140.5, 159, 171, 200, 208, 218, 245, 250, 300, 364.5, 440, 500 and 1000 keV. It reproduces
+  the six previously tabulated points to 0.4 percent, so decks at 140.5 and 208 keV do not change.
+  Decks that declare their own `CrystalEfficiencyEnergies` and `CrystalEfficiencyValues` are
+  unaffected. The table is for 9.5 mm NaI only, as the code comment and `docs/variance_reduction.md`
+  now say; any other crystal must declare its own. Outside 113-1000 keV the end values are still held
+  constant, with the existing one-time warning above the last point, now documented in
+  `docs/validation.md`.
+- **A converging or diverging `TsParallelHoleCollimator` had a lead wedge over the entrance and exit
+  of every tilted channel.** Each tilted channel was shortened until the rim of its end cap touched
+  the slab face, which left the rest of the cap inside the slab and a wedge of septum material over
+  the aperture, about the hole's circumradius times the sine of the tilt thick and largest at the
+  field edge. Photons travelling along a channel's axis had to cross it. On the Table S1 collimator
+  (hex 1.5 mm holes, 0.2 mm septa, 35 mm long, 90 x 90, f = 350 mm) with lead at 100 times density, a
+  140.5 keV source on axis kept 758 of 19,209 photopeak counts (0.039) in the converging build and
+  8,546 of 9,024 (0.947) in the parallel one, so even the channel hit by the on-axis source was
+  nearly closed. Every tilted channel is now built long and cut flush by the two face planes
+  (`G4IntersectionSolid`), so each bore spans the slab face to face with nothing over the aperture
+  and nothing protruding; the same build now keeps 19,307 of 20,585 (0.938). A beam along the axis of
+  an outer channel in a 10 mm-hole test collimator with lead at 100 times density went from 0 to
+  100.01 percent transmitted. Converging and fan-beam collimators therefore score higher
+  sensitivity than before (the on-axis Table S1 count rose 7 percent, 19,209 to 20,585), and
+  off-axis sensitivity no longer falls with field position because of the wedge. The inter-channel
+  clearance check now uses each channel's full face-to-face axis segment, as it should have.
+  Parallel collimators, and the untilted channels of a fan-beam one, are built exactly as before
+  and give identical counts (9,024 and 8,546 on the same decks). Converging builds hold one small
+  solid per distinct tilt, so a 90 x 90 cone-beam collimator now carries 8,100 solids against 4,095
+  before, and tracking through them is about 10 percent slower.
+- **The focal length of a converging or diverging collimator is measured from its mid-plane, and
+  the documentation said the front face.** Channel axes have always passed through the focus at
+  `FocalLengthX`/`FocalLengthY` from the collimator's mid-plane; `docs/design.md` and the header of
+  `TsParallelHoleCollimator.cc` described it as the face-to-focus distance. Only the documentation
+  changes: for a 35 mm collimator at f = 350 mm the focus sits 332.5 mm from the face, and the
+  measured magnification of the Table S1 deck, 1.596, matches the mid-plane closed form 1.602.
+- **`tests/test_physics_golden.py` carried a copy of the six-point table** in its generated decks. It
+  now carries the 14-point table.
+
+### Added
+- **Forced detection now refuses a converging, diverging or fan-beam collimator.**
+  `TsForcedDetectionProjection` has no focal-length concept and models parallel holes, so pairing it
+  with a `TsParallelHoleCollimator` that has `FocalLengthX` or `FocalLengthY` set silently gave the
+  wrong acceptance and field of view, with no warning. Initialization now fails with a `G4Exception`
+  (`SPECT_FD_NonParallelCollimator`) when the scorer is given a nonzero `FocalLengthX`/`FocalLengthY`
+  or when the same deck defines a `TsParallelHoleCollimator` with one. The message points to full
+  transport (`TsEDepSpectrum`) for those collimators. Parallel-hole decks are unaffected. Documented in
+  `docs/variance_reduction.md`.
+
 ## [1.1.0] - 2026-10-14
 
 Archived at [10.5281/zenodo.23370949](https://doi.org/10.5281/zenodo.23370949). The DOI in
