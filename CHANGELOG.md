@@ -8,8 +8,9 @@ All notable changes to `topas-spect` are documented here. The format follows
 
 ## [1.1.1] - 2026-10-26
 
-The concept DOI, 10.5281/zenodo.21251782, resolves to the newest version. The version DOI for this
-release is minted when it is archived.
+Archived at [10.5281/zenodo.23674918](https://doi.org/10.5281/zenodo.23674918). The DOI in
+`CITATION.cff` and the README badge is the concept DOI, 10.5281/zenodo.21251782, which resolves to
+whichever version is newest.
 
 ### Fixed
 - **The forced-detection crystal-efficiency default read 14 percent high at 300 keV and 20.5 percent
