@@ -8,6 +8,9 @@ All notable changes to `topas-spect` are documented here. The format follows
 
 ## [1.2.0] - 2026-10-27
 
+Archived at [10.5281/zenodo.23699194](https://doi.org/10.5281/zenodo.23699194). The concept DOI,
+10.5281/zenodo.21251782, resolves to whichever version is newest.
+
 ### Added
 - **`EDepSpectrum` can write each event in its detector head's own frame.** With
   `b:Sc/<name>/RecordLocalPosition = "True"`, six columns follow the default four: global `Z`, the
