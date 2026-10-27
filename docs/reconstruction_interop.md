@@ -175,6 +175,35 @@ axial/fixed and local X (`XBins`) is transaxial. **Verify this per-deck** (it fo
 which `Rot*` parameter drives the gantry, per Sec. 2.3) before assuming `ix`/`iy` map to a
 particular DICOM/Interfile row or column axis.
 
+### 2.6 Event list mode in the head frame (`EDepSpectrum` with `RecordLocalPosition`)
+
+Sections 2.1 to 2.5 derive the frame of each view from the deck. `EDepSpectrum` with
+`b:Sc/<name>/RecordLocalPosition = "True"` lets the output carry that frame instead. Each event row
+holds its energy-weighted centroid twice, in global coordinates (`X`, `Y`, `Z`) and in the scored
+crystal's frame (`U`, `V`, `W`), together with `DetectorID` and `Run` (one run per sequential time
+bin). Since both triples describe one point, a least-squares rigid fit over the rows of one
+(`Run`, `DetectorID`) group returns that head's rotation and translation to float32
+rounding (residuals below 0.01 mm in `tests/test_event_frame.py`). A reconstruction can therefore
+check its assumed view angles against the data before binning a single event.
+
+For the `Ge/Gantry/RotY` pattern of Sec. 2.2, that test measured the global-to-crystal rotation as
++RotY at entered angles of 0, 90, 180 and 270 deg (the physical rotation of the head being -RotY,
+as Sec. 2.1 states). One right-handed mapping onto the usual reconstruction convention follows,
+with the detector at n(θ) = (-sin θ, cos θ) and u = x cos θ + y sin θ:
+
+| Reconstruction | topas-spect |
+|---|---|
+| object (x, y, z) | global (X, Z, -Y); z runs along the gantry axis |
+| θ of a head built on +Z with `RotY = 0` | entered `Ge/Gantry/RotY` |
+| θ of a head built on -Z with `RotY = 180` | entered `Ge/Gantry/RotY` + 180 deg |
+| detector u | `U` |
+| detector axial coordinate | -`V` |
+
+This table holds for decks built like `examples/acquisition/dualhead_orbit_acquire.txt`. Fit the
+poses of any other deck before using it, as Sec. 2.3 advises for the rotation axis itself. Energy
+resolution, intrinsic resolution and windows are applied to `Edep`, `U` and `V` in
+post-processing.
+
 ## 3. DICOM PS3.3 Nuclear Medicine Image IOD field map
 
 Source: DICOM PS3.3 §A.5 (Nuclear Medicine Image IOD) and §C.8.4.11 (NM Detector Module),

@@ -6,6 +6,35 @@ All notable changes to `topas-spect` are documented here. The format follows
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-10-27
+
+### Added
+- **`EDepSpectrum` can write each event in its detector head's own frame.** With
+  `b:Sc/<name>/RecordLocalPosition = "True"`, six columns follow the default four: global `Z`, the
+  energy-weighted centroid `U`, `V`, `W` in the frame of the scored component's envelope volume,
+  `DetectorID` (from `i:Sc/<name>/DetectorID`, default 0) and `Run`, the TOPAS run index, which
+  advances once per sequential time bin. Heads that orbit, by a time feature or by one deck per
+  view, can then be binned into projections event by event, with one row per event at its
+  centroid as an Anger camera records it. Each row carries its centroid in both frames, so a rigid
+  fit per (`Run`, `DetectorID`) recovers every head pose from the output. Without the parameter the
+  scorer writes the four columns it wrote before: a 140.5 keV energy-response deck gave a
+  byte-identical file, 90,190 rows, against a binary built before the change.
+- `EDepSpectrum` counts events whose deposits carry different weights and reports the count at the
+  end of each run. Summing one event mixes split tracks, so such events do not describe a single
+  photon.
+- `tests/test_event_frame.py`, a value gate for the head-frame columns: static heads at 0, 90, 180
+  and 270 degrees, the four angles as sequential time bins on worker threads, two opposed heads,
+  and the overlap check at every angle (`docs/validation.md` section 8).
+- `examples/acquisition/dualhead_orbit_acquire.txt`: a dual-head Symbia LEHR orbit around a water
+  cylinder holding an off-axis Tc-99m point source, with one head-frame scorer per head.
+- `docs/reconstruction_interop.md` section 2.6: the head-frame columns, the pose fit, and the
+  mapping of the `Ge/Gantry/RotY` pattern onto a right-handed reconstruction frame.
+
+### Fixed
+- `examples/acquisition/dualhead_orbit.txt` now ends its orbit at 180 deg, as its comment states. TOPAS
+  spaces N sequential times by (end - start) / N, so 37 times over 36 s put the last view at 175.1 deg;
+  the timeline now runs 37 s, one view every 5 deg.
+
 ## [1.1.1] - 2026-10-26
 
 Archived at [10.5281/zenodo.23674918](https://doi.org/10.5281/zenodo.23674918). The DOI in

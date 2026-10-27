@@ -255,3 +255,26 @@ scorers (raw un-smeared/un-windowed event output for post-hoc Python-side acquis
 stale/abandoned by the PI and discarded rather than migrated. topas-starguide's OSEM reconstruction
 and 7-module PyQt6 GUI are also not migrated here: the PI ruled that capability is superseded by the
 lab's separate inverse-Monte-Carlo reconstruction work, not carried forward into this package.
+
+## 8. Head-frame event output (2026-10-27)
+
+`EDepSpectrum` with `RecordLocalPosition` writes each event's centroid in the scored crystal's frame
+as well as in global coordinates (Sec. 2.6 of `reconstruction_interop.md`).
+`tests/test_event_frame.py` checks those columns at every head angle and on worker threads.
+
+**Geometry of every check.**
+- Symbia LEHR collimator: 1.11 mm round holes on a square lattice, 0.16 mm septa, 24.05 mm lead.
+- 9.5 mm NaI crystal, 200 × 200 mm.
+- Collimator face 150 mm from the gantry axis, with the gantry turning about world Y.
+- Isotropic 140.5 keV point source in vacuum at (25, 15, 40) mm.
+- 20 % window (126.45 to 154.55 keV) on unsmeared `Edep`.
+- `g4em-penelope` with fluorescence, 2 × 10⁷ histories per head angle, 8 threads.
+
+| Check | Result |
+|---|---|
+| Default output (no new parameters) against a binary built before the feature | 90,190 rows, byte-identical |
+| Head at RotY 0, 90, 180, 270 deg: rigid fit of global to crystal frame | residual below 0.01 mm; fitted rotation = +RotY within 0.001 deg |
+| Photopeak centroid (U, V) against the source's projection through the fitted pose | within 0.14 mm at all four angles (1,451 to 1,552 counts, standard error 0.08 to 0.14 mm) |
+| Four angles as four sequential time bins of one deck | `Run` = 0 to 3 on worker threads; pose, counts and centroid match the static runs |
+| Two opposed heads, `DetectorID` 0 and 1 | 1,502 and 1,440 counts; U = 25.13 and -24.91 mm (mirrored), V = 14.95 and 15.00 mm |
+| Overlap check at every angle | none in 6 runs |

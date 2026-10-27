@@ -131,7 +131,7 @@ The default `Round` holes on a `Square` lattice reproduce the distance-dependent
 resolution and septal-penetration tail, and are the configuration used for the results in
 [`docs/validation.md`](docs/validation.md). Real clinical collimators use hexagonal holes on
 a hexagonal lattice: set `HoleShape = "Hex"` and `Lattice = "Hex"`. The hexagonal packing
-fits more open area (packing factor ~0.907 relative to a square lattice of the same pitch)
+fits more open area (packing factor ~0.907 relative to a square lattice of equal pitch)
 and so gives higher absolute sensitivity.
 
 ### `TsEDepSpectrum` (scoring)
@@ -143,10 +143,28 @@ deposited per incident primary and writes one ntuple row per event:
 |--------|------|---------|
 | `Edep` | keV | Total deposited energy for the event (photopeak, Compton continuum, K-escape, ...) |
 | `X`, `Y` | mm | Energy-weighted interaction centroid (global coordinates) |
+| `Weight` | | Event weight (1 without variance reduction) |
 
 With a mono-energetic source this directly yields the detector energy-response
 function; with a collimator upstream and an energy-window cut in post-processing it
 yields counts-in-window system sensitivity.
+
+For heads that move or rotate, `b:Sc/<name>/RecordLocalPosition = "True"` appends six
+columns after these four, so a reconstruction can bin each event in its own head's frame:
+
+| Column | Unit | Meaning |
+|--------|------|---------|
+| `Z` | mm | Global Z of the centroid |
+| `U`, `V`, `W` | mm | Centroid in the scored crystal's frame (its envelope volume, so pixel daughters do not change it) |
+| `DetectorID` | | `i:Sc/<name>/DetectorID` (default 0); one scorer per head |
+| `Run` | | TOPAS run index, one per sequential time bin |
+
+Each row then holds its centroid in both frames, which lets a rigid fit per
+(`Run`, `DetectorID`) recover each head's pose from the output itself. Events whose
+deposits carry different weights (split variance reduction) are counted and reported
+at the end of each run, since an event sum mixes the split tracks. See
+`examples/acquisition/dualhead_orbit_acquire.txt` and
+[`docs/reconstruction_interop.md`](docs/reconstruction_interop.md) §2.6.
 
 The remaining scorers and the `TsStarGuideDetector` geometry are documented in their
 source headers.
@@ -182,6 +200,6 @@ alongside OpenTOPAS and Geant4.
 
 ## License
 
-OpenTOPAS-SPECT is released under the [MIT License](LICENSE), the same permissive
-license as OpenTOPAS, so the extensions can be built and distributed alongside a
+OpenTOPAS-SPECT is released under the [MIT License](LICENSE), the permissive
+license OpenTOPAS also uses, so the extensions can be built and distributed alongside a
 OpenTOPAS installation without additional restrictions. Copyright (c) 2026 Bertolet Lab.

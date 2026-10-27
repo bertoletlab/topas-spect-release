@@ -1,0 +1,115 @@
+# Dual-head Anger SPECT acquisition with list-mode event output in each head's own frame.
+#
+# Two Siemens Symbia LEHR heads, 180 deg apart and 150 mm from the gantry axis (collimator face),
+# ride a Gantry group that turns about world Y once per sequential time bin: 8 bins of 22.5 deg,
+# so the two heads together give 16 views over 360 deg. A water cylinder (radius 90 mm, length
+# 160 mm, axis along Y) holds an isotropic 140.5 keV point source 40 mm off axis.
+#
+# Each crystal carries an EDepSpectrum scorer with RecordLocalPosition, so every event is written
+# once, at its energy-weighted centroid, with:
+#   Edep, X, Y, Weight            the default columns (global X, Y)
+#   Z, U, V, W, DetectorID, Run   global Z, the centroid in the crystal's frame, the head, the bin
+# Bin projections from (U, V) per (Run, DetectorID) after applying energy resolution, intrinsic
+# resolution and windows in post-processing. Since every row carries its centroid in both frames,
+# a rigid fit per (Run, DetectorID) recovers each head's pose from the output itself; see
+# docs/reconstruction_interop.md section 2.6 for the mapping to a reconstruction frame.
+#
+# Run from this example's folder:  topas dualhead_orbit_acquire.txt
+includeFile = ../../systems/symbia_lehr.txt
+
+i:Ts/NumberOfThreads = 0
+i:Ts/ShowHistoryCountAtInterval = 0
+b:Ts/PauseBeforeQuit = "False"
+b:Ge/QuitIfOverlapDetected = "True"
+
+sv:Ph/Default/Modules = 1 "g4em-penelope"
+b:Ph/Default/Fluorescence = "True"
+d:Ph/Default/CutForGamma = 0.05 mm
+d:Ph/Default/CutForElectron = 0.1 mm
+
+d:Ge/World/HLX = 300. mm
+d:Ge/World/HLY = 300. mm
+d:Ge/World/HLZ = 300. mm
+s:Ge/World/Material = "Vacuum"
+
+# ---- orbit: 8 sequential times at 0, 22.5, ..., 157.5 deg (t_i = i * (end - start) / N) ----
+i:Tf/NumberOfSequentialTimes = 8
+d:Tf/TimelineStart = 0. s
+d:Tf/TimelineEnd = 8. s
+s:Tf/Gantry/Function = "Linear deg"
+d:Tf/Gantry/StartValue = 0. deg
+d:Tf/Gantry/Rate = 22.5 deg/s
+s:Ge/Gantry/Type = "Group"
+s:Ge/Gantry/Parent = "World"
+d:Ge/Gantry/RotY = Tf/Gantry/Value deg
+
+# ---- head 0 (preset Collim/Crystal), on +Z of the gantry ----
+s:Ge/Collim/Parent = "Gantry"
+i:Ge/Collim/NHolesX = 200
+i:Ge/Collim/NHolesY = 200
+d:Ge/Collim/TransZ = 162.025 mm        # 150 mm face + 24.05/2
+s:Ge/Crystal/Parent = "Gantry"
+d:Ge/Crystal/HLX = 100. mm
+d:Ge/Crystal/HLY = 100. mm
+d:Ge/Crystal/TransZ = 179.05 mm        # face + 24.05 collimator + 0.25 gap + 4.75 half-thickness
+
+# ---- head 1, on -Z, turned 180 deg; hole geometry taken from head 0's preset values ----
+s:Ge/CollimB/Type             = "TsParallelHoleCollimator"
+s:Ge/CollimB/Parent           = "Gantry"
+s:Ge/CollimB/Material         = "Lead"
+d:Ge/CollimB/HoleDiameter     = Ge/Collim/HoleDiameter mm
+d:Ge/CollimB/SeptalThickness  = Ge/Collim/SeptalThickness mm
+d:Ge/CollimB/CollimatorLength = Ge/Collim/CollimatorLength mm
+s:Ge/CollimB/Hole/Material    = "Vacuum"
+i:Ge/CollimB/NHolesX = 200
+i:Ge/CollimB/NHolesY = 200
+d:Ge/CollimB/TransZ = -162.025 mm
+d:Ge/CollimB/RotY = 180. deg
+s:Ge/CrystalB/Type     = "TsBox"
+s:Ge/CrystalB/Parent   = "Gantry"
+s:Ge/CrystalB/Material = "NaI"
+d:Ge/CrystalB/HLX = 100. mm
+d:Ge/CrystalB/HLY = 100. mm
+d:Ge/CrystalB/HLZ = Ge/Crystal/HLZ mm
+d:Ge/CrystalB/TransZ = -179.05 mm
+d:Ge/CrystalB/RotY = 180. deg
+
+# ---- phantom and source ----
+s:Ge/Phantom/Type = "TsCylinder"
+s:Ge/Phantom/Parent = "World"
+s:Ge/Phantom/Material = "G4_WATER"
+d:Ge/Phantom/RMax = 90. mm
+d:Ge/Phantom/HL = 80. mm
+d:Ge/Phantom/RotX = 90. deg            # cylinder axis along the gantry axis (world Y)
+
+s:Ge/Src/Type = "TsBox"
+s:Ge/Src/Parent = "Phantom"
+s:Ge/Src/Material = "G4_WATER"
+d:Ge/Src/HLX = 0.01 mm
+d:Ge/Src/HLY = 0.01 mm
+d:Ge/Src/HLZ = 0.01 mm
+d:Ge/Src/TransX = 40. mm               # RotX leaves x unchanged: 40 mm off axis along world X
+
+s:So/Pt/Type = "Isotropic"
+s:So/Pt/Component = "Src"
+s:So/Pt/IsotropicParticle = "gamma"
+d:So/Pt/IsotropicEnergy = 140.5 keV
+u:So/Pt/IsotropicEnergySpread = 0.
+i:So/Pt/NumberOfHistoriesInRun = 1000000
+
+# ---- one event scorer per head ----
+s:Sc/Head0/Quantity = "EDepSpectrum"
+s:Sc/Head0/Component = "Crystal"
+b:Sc/Head0/RecordLocalPosition = "True"
+i:Sc/Head0/DetectorID = 0
+s:Sc/Head0/OutputType = "ASCII"
+s:Sc/Head0/OutputFile = "dualhead_head0"
+s:Sc/Head0/IfOutputFileAlreadyExists = "Overwrite"
+
+s:Sc/Head1/Quantity = "EDepSpectrum"
+s:Sc/Head1/Component = "CrystalB"
+b:Sc/Head1/RecordLocalPosition = "True"
+i:Sc/Head1/DetectorID = 1
+s:Sc/Head1/OutputType = "ASCII"
+s:Sc/Head1/OutputFile = "dualhead_head1"
+s:Sc/Head1/IfOutputFileAlreadyExists = "Overwrite"

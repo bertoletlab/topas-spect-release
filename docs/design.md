@@ -163,7 +163,8 @@ so on). All dimensions are plain length parameters, so you change them freely.
 The package scorers work on any of these geometries:
 
 - `EDepSpectrum` (`TsEDepSpectrum`) records the per-event deposited-energy spectrum and the interaction
-  centroid; attach it to the crystal or detector component.
+  centroid; attach it to the crystal or detector component. With `RecordLocalPosition` it also writes
+  the centroid in the crystal's own frame, a `DetectorID` and the run index, for heads that orbit.
 - `StarGuideProjection` (`TsScoreStarGuideProjection`) records a pixel-binned projection with Gaussian
   energy smearing, binning by local position, and works on any box crystal.
 - `ForcedDetectionProjection` (`TsForcedDetectionProjection`) is the analytic-collimator fast path for

@@ -8,14 +8,15 @@
 # for a given camera is in systems/) to model a specific system.
 #
 # To VISUALIZE the motion: open in the OpenTOPAS Qt GUI (b:Ts/UseQt = "True") and click run.
-# To ACQUIRE: add activity sources in the phantom (see phantoms/) and a scorer on each crystal; for
-# per-projection scoring, use one deck per projection angle.
+# To ACQUIRE: add activity sources in the phantom (see phantoms/) and a scorer on each crystal;
+# dualhead_orbit_acquire.txt shows the orbit scored event by event in each head's own frame.
 #
 # Run from this example's folder:  topas dualhead_orbit.txt
 i:Ts/NumberOfThreads = 1
+# 37 times spaced by (end - start) / 37 = 1 s: 0, 5, ..., 180 deg.
 i:Tf/NumberOfSequentialTimes = 37
 d:Tf/TimelineStart = 0. s
-d:Tf/TimelineEnd = 36. s
+d:Tf/TimelineEnd = 37. s
 d:Ge/World/HLX = 420. mm
 d:Ge/World/HLY = 420. mm
 d:Ge/World/HLZ = 420. mm
